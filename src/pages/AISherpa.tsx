@@ -80,7 +80,7 @@ export default function AISherpa() {
               >
                 <p className="font-medium truncate text-xs">{conv.title || 'New conversation'}</p>
                 <p className={`text-xs mt-0.5 ${conversationId === conv.id ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  {formatRelativeTime(conv.updated_at)}
+                  {formatRelativeTime(conv.updated_at ?? conv.created_at ?? new Date().toISOString())}
                 </p>
               </button>
             ))}

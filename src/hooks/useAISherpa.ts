@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { AIConversation, AIMessage, SherpaRequest, SherpaResponse } from '@/types/ai-sherpa';
+import { AIConversation, AIMessage, SherpaResponse } from '@/types/ai-sherpa';
 import { detectCrisis } from '@/lib/crisis-keywords';
 import { toast } from 'sonner';
 
@@ -79,14 +79,16 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
-      const request: SherpaRequest = {
-        conversationId: convId!,
-        messages: [{ role: 'user' as const, content: message }],
-        userContext: {
-          treatmentStage: profile?.treatment_stage ?? undefined,
+      const requestBody = {
+        message,
+        conversation_id: convId,
+        user_context: {
+          treatment_stage: profile?.treatment_stage ?? undefined,
           state: profile?.state ?? undefined,
           diagnosis: profile?.diagnosis ?? undefined,
-          priorityCategories: profile?.priority_categories ?? undefined,
+          priority_categories: profile?.priority_categories ?? undefined,
+          child_first_name: profile?.child_first_name ?? undefined,
+          additional_info: profile?.additional_info ?? undefined,
         },
       };
 
@@ -98,7 +100,7 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestBody),
         }
       );
 

@@ -28,19 +28,13 @@ export function useCommunityMessages(channelId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('community_messages')
-        .select(`
-          *,
-          user_profiles!user_id (
-            display_name,
-            role
-          )
-        `)
+        .select('*')
         .eq('channel_id', channelId!)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as (CommunityMessage & { user_profiles: { display_name: string; role: string } | null })[];
+      return (data ?? []) as CommunityMessage[];
     },
   });
 
