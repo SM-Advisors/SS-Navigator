@@ -60,17 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return { error };
-    if (data.user) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: profileError } = await supabase.from('user_profiles').insert({
-        user_id: data.user.id,
-        display_name: displayName || email.split('@')[0],
-      } as any);
-      if (profileError) return { error: profileError };
-    }
-    return { error: null };
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: displayName || email.split('@')[0] },
+      },
+    });
+    return { error: error as Error | null };
   };
 
   const signIn = async (email: string, password: string) => {
