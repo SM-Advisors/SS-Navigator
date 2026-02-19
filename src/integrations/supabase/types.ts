@@ -417,7 +417,6 @@ export type Database = {
           notification_preferences: Json | null
           onboarding_completed: boolean | null
           priority_categories: string[] | null
-          role: Database["public"]["Enums"]["user_role"] | null
           state: string | null
           tour_completed: boolean | null
           treatment_center: string | null
@@ -438,7 +437,6 @@ export type Database = {
           notification_preferences?: Json | null
           onboarding_completed?: boolean | null
           priority_categories?: string[] | null
-          role?: Database["public"]["Enums"]["user_role"] | null
           state?: string | null
           tour_completed?: boolean | null
           treatment_center?: string | null
@@ -461,7 +459,6 @@ export type Database = {
           notification_preferences?: Json | null
           onboarding_completed?: boolean | null
           priority_categories?: string[] | null
-          role?: Database["public"]["Enums"]["user_role"] | null
           state?: string | null
           tour_completed?: boolean | null
           treatment_center?: string | null
@@ -471,6 +468,27 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
         }
         Relationships: []
       }
