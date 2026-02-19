@@ -1,373 +1,487 @@
-// Auto-generated Supabase types
-// Run: npx supabase gen types typescript --project-id <YOUR_PROJECT_ID> > src/integrations/supabase/types.ts
-// after connecting your Supabase project
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
-    PostgrestVersion: "12";
     Tables: {
-      user_profiles: {
-        Row: {
-          id: string;
-          user_id: string;
-          display_name: string | null;
-          role: "family_member" | "navigator" | "admin";
-          child_first_name: string | null;
-          diagnosis: string | null;
-          diagnosis_date: string | null;
-          treatment_stage:
-            | "newly_diagnosed"
-            | "in_treatment"
-            | "post_treatment"
-            | "survivorship"
-            | "relapse"
-            | "bereavement"
-            | "prefer_not_to_say";
-          treatment_center: string | null;
-          state: string | null;
-          city: string | null;
-          zip_code: string | null;
-          priority_categories: string[];
-          notification_preferences: Json;
-          onboarding_completed: boolean;
-          tour_completed: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          display_name?: string | null;
-          role?: "family_member" | "navigator" | "admin";
-          child_first_name?: string | null;
-          diagnosis?: string | null;
-          diagnosis_date?: string | null;
-          treatment_stage?:
-            | "newly_diagnosed"
-            | "in_treatment"
-            | "post_treatment"
-            | "survivorship"
-            | "relapse"
-            | "bereavement"
-            | "prefer_not_to_say";
-          treatment_center?: string | null;
-          state?: string | null;
-          city?: string | null;
-          zip_code?: string | null;
-          priority_categories?: string[];
-          notification_preferences?: Json;
-          onboarding_completed?: boolean;
-          tour_completed?: boolean;
-        };
-        Update: {
-          display_name?: string | null;
-          role?: "family_member" | "navigator" | "admin";
-          child_first_name?: string | null;
-          diagnosis?: string | null;
-          diagnosis_date?: string | null;
-          treatment_stage?:
-            | "newly_diagnosed"
-            | "in_treatment"
-            | "post_treatment"
-            | "survivorship"
-            | "relapse"
-            | "bereavement"
-            | "prefer_not_to_say";
-          treatment_center?: string | null;
-          state?: string | null;
-          city?: string | null;
-          zip_code?: string | null;
-          priority_categories?: string[];
-          notification_preferences?: Json;
-          onboarding_completed?: boolean;
-          tour_completed?: boolean;
-        };
-      };
-      audit_log: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          action: string;
-          resource_type: string | null;
-          resource_id: string | null;
-          metadata: Json;
-          ip_address: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          action: string;
-          resource_type?: string | null;
-          resource_id?: string | null;
-          metadata?: Json;
-          ip_address?: string | null;
-        };
-        Update: Record<string, never>;
-      };
-      resources: {
-        Row: {
-          id: string;
-          title: string;
-          description: string;
-          long_description: string | null;
-          category:
-            | "financial"
-            | "medical"
-            | "emotional"
-            | "practical"
-            | "legal"
-            | "educational"
-            | "community"
-            | "navigation"
-            | "survivorship"
-            | "sibling_support";
-          subcategory: string | null;
-          organization_name: string;
-          organization_url: string | null;
-          organization_phone: string | null;
-          organization_email: string | null;
-          applicable_states: string[];
-          applicable_stages: string[];
-          applicable_diagnoses: string[];
-          age_range_min: number | null;
-          age_range_max: number | null;
-          tags: string[];
-          is_featured: boolean;
-          is_active: boolean;
-          is_crisis_resource: boolean;
-          priority_order: number;
-          application_url: string | null;
-          created_at: string;
-          updated_at: string;
-          last_verified_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          description: string;
-          long_description?: string | null;
-          category:
-            | "financial"
-            | "medical"
-            | "emotional"
-            | "practical"
-            | "legal"
-            | "educational"
-            | "community"
-            | "navigation"
-            | "survivorship"
-            | "sibling_support";
-          subcategory?: string | null;
-          organization_name: string;
-          organization_url?: string | null;
-          organization_phone?: string | null;
-          organization_email?: string | null;
-          applicable_states?: string[];
-          applicable_stages?: string[];
-          applicable_diagnoses?: string[];
-          age_range_min?: number | null;
-          age_range_max?: number | null;
-          tags?: string[];
-          is_featured?: boolean;
-          is_active?: boolean;
-          is_crisis_resource?: boolean;
-          priority_order?: number;
-          application_url?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["resources"]["Insert"]>;
-      };
-      saved_resources: {
-        Row: {
-          id: string;
-          user_id: string;
-          resource_id: string;
-          notes: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          resource_id: string;
-          notes?: string | null;
-        };
-        Update: {
-          notes?: string | null;
-        };
-      };
       ai_conversations: {
         Row: {
-          id: string;
-          user_id: string;
-          title: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          title?: string | null;
-          is_active?: boolean;
-        };
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
         Update: {
-          title?: string | null;
-          is_active?: boolean;
-        };
-      };
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_messages: {
         Row: {
-          id: string;
-          conversation_id: string;
-          role: "user" | "assistant" | "system";
-          content: string;
-          resource_ids: string[];
-          suggested_prompts: string[];
-          crisis_detected: boolean;
-          metadata: Json;
-          created_at: string;
-        };
+          content: string
+          conversation_id: string
+          created_at: string | null
+          crisis_detected: boolean | null
+          id: string
+          metadata: Json | null
+          resource_ids: string[] | null
+          role: string
+          suggested_prompts: string[] | null
+        }
         Insert: {
-          id?: string;
-          conversation_id: string;
-          role: "user" | "assistant" | "system";
-          content: string;
-          resource_ids?: string[];
-          suggested_prompts?: string[];
-          crisis_detected?: boolean;
-          metadata?: Json;
-        };
-        Update: Record<string, never>;
-      };
-      community_channels: {
-        Row: {
-          id: string;
-          name: string;
-          slug: string;
-          description: string | null;
-          icon: string | null;
-          category: string | null;
-          display_order: number;
-          is_active: boolean;
-          is_default: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          slug: string;
-          description?: string | null;
-          icon?: string | null;
-          category?: string | null;
-          display_order?: number;
-          is_active?: boolean;
-          is_default?: boolean;
-        };
-        Update: Partial<Database["public"]["Tables"]["community_channels"]["Insert"]>;
-      };
-      community_messages: {
-        Row: {
-          id: string;
-          channel_id: string;
-          user_id: string;
-          content: string;
-          is_edited: boolean;
-          is_deleted: boolean;
-          parent_message_id: string | null;
-          metadata: Json;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          channel_id: string;
-          user_id: string;
-          content: string;
-          is_edited?: boolean;
-          is_deleted?: boolean;
-          parent_message_id?: string | null;
-          metadata?: Json;
-        };
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          crisis_detected?: boolean | null
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          role: string
+          suggested_prompts?: string[] | null
+        }
         Update: {
-          content?: string;
-          is_edited?: boolean;
-          is_deleted?: boolean;
-        };
-      };
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          crisis_detected?: boolean | null
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          role?: string
+          suggested_prompts?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       channel_memberships: {
         Row: {
-          id: string;
-          channel_id: string;
-          user_id: string;
-          last_read_at: string;
-          created_at: string;
-        };
+          channel_id: string
+          created_at: string | null
+          id: string
+          last_read_at: string | null
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          channel_id: string;
-          user_id: string;
-          last_read_at?: string;
-        };
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          user_id: string
+        }
         Update: {
-          last_read_at?: string;
-        };
-      };
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_memberships_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "community_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_channels: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          slug: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      community_messages: {
+        Row: {
+          channel_id: string
+          content: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_edited: boolean | null
+          metadata: Json | null
+          parent_message_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          metadata?: Json | null
+          parent_message_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          metadata?: Json | null
+          parent_message_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "community_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "community_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
-          id: string;
-          user_id: string | null;
-          name: string;
-          email: string;
-          phone: string | null;
-          subject: string;
-          message: string;
-          submission_type: string;
-          status: string;
-          assigned_navigator_id: string | null;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          assigned_navigator_id: string | null
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          notes: string | null
+          phone: string | null
+          status: string | null
+          subject: string
+          submission_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
         Insert: {
-          id?: string;
-          user_id?: string | null;
-          name: string;
-          email: string;
-          phone?: string | null;
-          subject: string;
-          message: string;
-          submission_type?: string;
-          status?: string;
-          assigned_navigator_id?: string | null;
-          notes?: string | null;
-        };
+          assigned_navigator_id?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          subject: string
+          submission_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
         Update: {
-          status?: string;
-          assigned_navigator_id?: string | null;
-          notes?: string | null;
-        };
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+          assigned_navigator_id?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          subject?: string
+          submission_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          age_range_max: number | null
+          age_range_min: number | null
+          applicable_diagnoses: string[] | null
+          applicable_stages: string[] | null
+          applicable_states: string[] | null
+          application_url: string | null
+          category: Database["public"]["Enums"]["resource_category"]
+          created_at: string | null
+          description: string
+          id: string
+          is_active: boolean | null
+          is_crisis_resource: boolean | null
+          is_featured: boolean | null
+          last_verified_at: string | null
+          long_description: string | null
+          organization_email: string | null
+          organization_name: string
+          organization_phone: string | null
+          organization_url: string | null
+          priority_order: number | null
+          subcategory: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          applicable_diagnoses?: string[] | null
+          applicable_stages?: string[] | null
+          applicable_states?: string[] | null
+          application_url?: string | null
+          category: Database["public"]["Enums"]["resource_category"]
+          created_at?: string | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          is_crisis_resource?: boolean | null
+          is_featured?: boolean | null
+          last_verified_at?: string | null
+          long_description?: string | null
+          organization_email?: string | null
+          organization_name: string
+          organization_phone?: string | null
+          organization_url?: string | null
+          priority_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          applicable_diagnoses?: string[] | null
+          applicable_stages?: string[] | null
+          applicable_states?: string[] | null
+          application_url?: string | null
+          category?: Database["public"]["Enums"]["resource_category"]
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          is_crisis_resource?: boolean | null
+          is_featured?: boolean | null
+          last_verified_at?: string | null
+          long_description?: string | null
+          organization_email?: string | null
+          organization_name?: string
+          organization_phone?: string | null
+          organization_url?: string | null
+          priority_order?: number | null
+          subcategory?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      saved_resources: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          resource_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          resource_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          resource_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          additional_info: string | null
+          child_first_name: string | null
+          city: string | null
+          created_at: string | null
+          diagnosis: string | null
+          diagnosis_date: string | null
+          display_name: string | null
+          id: string
+          notification_preferences: Json | null
+          onboarding_completed: boolean | null
+          priority_categories: string[] | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          state: string | null
+          tour_completed: boolean | null
+          treatment_center: string | null
+          treatment_stage: Database["public"]["Enums"]["treatment_stage"] | null
+          updated_at: string | null
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          additional_info?: string | null
+          child_first_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          diagnosis_date?: string | null
+          display_name?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          onboarding_completed?: boolean | null
+          priority_categories?: string[] | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          state?: string | null
+          tour_completed?: boolean | null
+          treatment_center?: string | null
+          treatment_stage?:
+            | Database["public"]["Enums"]["treatment_stage"]
+            | null
+          updated_at?: string | null
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          additional_info?: string | null
+          child_first_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          diagnosis_date?: string | null
+          display_name?: string | null
+          id?: string
+          notification_preferences?: Json | null
+          onboarding_completed?: boolean | null
+          priority_categories?: string[] | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          state?: string | null
+          tour_completed?: boolean | null
+          treatment_center?: string | null
+          treatment_stage?:
+            | Database["public"]["Enums"]["treatment_stage"]
+            | null
+          updated_at?: string | null
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
-      treatment_stage:
-        | "newly_diagnosed"
-        | "in_treatment"
-        | "post_treatment"
-        | "survivorship"
-        | "relapse"
-        | "bereavement"
-        | "prefer_not_to_say";
-      user_role: "family_member" | "navigator" | "admin";
       resource_category:
         | "financial"
         | "medical"
@@ -378,17 +492,165 @@ export type Database = {
         | "community"
         | "navigation"
         | "survivorship"
-        | "sibling_support";
-    };
-    CompositeTypes: Record<string, never>;
-  };
-};
+        | "sibling_support"
+      treatment_stage:
+        | "newly_diagnosed"
+        | "in_treatment"
+        | "post_treatment"
+        | "survivorship"
+        | "relapse"
+        | "bereavement"
+        | "prefer_not_to_say"
+      user_role: "family_member" | "navigator" | "admin"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
 
-export type Tables<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
-export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Insert"];
-export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Update"];
-export type Enums<T extends keyof Database["public"]["Enums"]> =
-  Database["public"]["Enums"][T];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      resource_category: [
+        "financial",
+        "medical",
+        "emotional",
+        "practical",
+        "legal",
+        "educational",
+        "community",
+        "navigation",
+        "survivorship",
+        "sibling_support",
+      ],
+      treatment_stage: [
+        "newly_diagnosed",
+        "in_treatment",
+        "post_treatment",
+        "survivorship",
+        "relapse",
+        "bereavement",
+        "prefer_not_to_say",
+      ],
+      user_role: ["family_member", "navigator", "admin"],
+    },
+  },
+} as const
