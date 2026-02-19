@@ -2,7 +2,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type UserProfile = Tables<"user_profiles">;
 export type TreatmentStage = UserProfile["treatment_stage"];
-export type UserRole = UserProfile["role"];
+export type UserRole = "family_member" | "navigator" | "admin";
 
 export const TREATMENT_STAGE_LABELS: Record<NonNullable<TreatmentStage>, string> = {
   newly_diagnosed: "Newly Diagnosed",
