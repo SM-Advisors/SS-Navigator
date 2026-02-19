@@ -24,22 +24,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (!error && data) {
-      setProfile(data as UserProfile);
-    } else if (!data) {
-      // Profile missing (pre-trigger user) — create one
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: newProfile } = await (supabase as any)
+    try {
+      const { data, error } = await supabase
         .from('user_profiles')
-        .insert({ user_id: userId, display_name: 'User' })
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (data) {
+        setProfile(data as UserProfile);
+        return;
+      }
+      
+      if (error) {
+        console.error('loadProfile select error:', error);
+      }
+
+      // Profile missing (pre-trigger user) — create one
+      console.log('Creating missing profile for user:', userId);
+      const { data: newProfile, error: insertError } = await supabase
+        .from('user_profiles')
+        .insert({ user_id: userId, display_name: 'User' } as never)
         .select()
         .single();
+      
+      if (insertError) {
+        console.error('loadProfile insert error:', insertError);
+        return;
+      }
       if (newProfile) setProfile(newProfile as UserProfile);
+    } catch (err) {
+      console.error('loadProfile unexpected error:', err);
     }
   }, []);
 
