@@ -69,7 +69,13 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicKey) {
+      return new Response(JSON.stringify({ error: 'AI service not configured. Please set ANTHROPIC_API_KEY.' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
@@ -93,13 +99,30 @@ serve(async (req) => {
       });
     }
 
-    // Resource retrieval via full-text search
-    const { data: resources } = await supabase
-      .from('resources')
-      .select('id, title, description, organization_name, organization_url, category, applicable_states')
-      .eq('is_active', true)
-      .textSearch('search_vector', message.split(' ').slice(0, 5).join(' | '), { type: 'websearch' })
-      .limit(5);
+    // Resource retrieval — try full-text search, fall back to ilike if search_vector column not available
+    const searchTerms = message.split(' ').filter(w => w.length > 3).slice(0, 5).join(' | ');
+    let resources = null;
+    try {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('id, title, description, organization_name, organization_url, organization_phone, category, applicable_states')
+        .eq('is_active', true)
+        .textSearch('search_vector', searchTerms || message, { type: 'websearch' })
+        .limit(5);
+      if (!error) resources = data;
+    } catch {
+      // fallback: keyword search via ilike
+    }
+    if (!resources) {
+      const keyword = message.split(' ').find(w => w.length > 4) ?? message.slice(0, 20);
+      const { data } = await supabase
+        .from('resources')
+        .select('id, title, description, organization_name, organization_url, organization_phone, category, applicable_states')
+        .eq('is_active', true)
+        .or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%`)
+        .limit(5);
+      resources = data;
+    }
 
     // Get recent conversation history
     let conversationHistory: Array<{ role: string; content: string }> = [];
@@ -144,7 +167,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1024,
         system: fullSystemPrompt,
         messages: [

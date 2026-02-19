@@ -15,7 +15,8 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
         .range((page - 1) * RESOURCES_PER_PAGE, page * RESOURCES_PER_PAGE - 1);
 
       if (filters.search) {
-        query = query.textSearch('search_vector', filters.search, { type: 'websearch' });
+        // Use full-text search on generated search_vector column
+        query = query.textSearch('search_vector', filters.search, { type: 'websearch', config: 'english' });
       }
       if (filters.category) {
         query = query.eq('category', filters.category);
