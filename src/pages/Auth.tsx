@@ -95,9 +95,17 @@ function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     const { error } = await signUp(data.email, data.password, data.displayName);
     if (error) {
-      toast.error('Registration failed', { description: error.message });
+      // Provide user-friendly messages for common errors
+      const msg = error.message?.toLowerCase() || '';
+      if (msg.includes('rate limit')) {
+        toast.error('Too many attempts', { description: 'Please wait a few minutes before trying again.' });
+      } else if (msg.includes('already registered') || msg.includes('already been registered')) {
+        toast.error('Account already exists', { description: 'Try signing in instead.' });
+      } else {
+        toast.error('Registration failed', { description: error.message });
+      }
     } else {
-      toast.success('Account created! Please check your email to verify.');
+      toast.success('Account created successfully!');
       navigate('/onboarding');
     }
   };
