@@ -1,0 +1,98 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Resource, ResourceFilters } from '@/types/resources';
+import { RESOURCES_PER_PAGE } from '@/lib/constants';
+
+export function useResources(filters: ResourceFilters = {}, page = 1) {
+  return useQuery({
+    queryKey: ['resources', filters, page],
+    queryFn: async () => {
+      let query = supabase
+        .from('resources')
+        .select('*', { count: 'exact' })
+        .eq('is_active', true)
+        .order('priority_order', { ascending: false })
+        .range((page - 1) * RESOURCES_PER_PAGE, page * RESOURCES_PER_PAGE - 1);
+
+      if (filters.search) {
+        query = query.textSearch('search_vector', filters.search, { type: 'websearch' });
+      }
+      if (filters.category) {
+        query = query.eq('category', filters.category);
+      }
+      if (filters.state) {
+        query = query.or(`applicable_states.cs.{${filters.state}},applicable_states.eq.{}`);
+      }
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { resources: (data ?? []) as Resource[], total: count ?? 0 };
+    },
+  });
+}
+
+export function useFeaturedResources() {
+  return useQuery({
+    queryKey: ['resources', 'featured'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .eq('is_active', true)
+        .eq('is_featured', true)
+        .order('priority_order', { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return (data ?? []) as Resource[];
+    },
+  });
+}
+
+export function useResource(id: string | undefined) {
+  return useQuery({
+    queryKey: ['resource', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .eq('id', id!)
+        .single();
+      if (error) throw error;
+      return data as Resource;
+    },
+  });
+}
+
+export function useToggleSave(resourceId: string) {
+  const queryClient = useQueryClient();
+
+  const save = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from('saved_resources')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert({ user_id: userId, resource_id: resourceId } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved-resources'] });
+    },
+  });
+
+  const unsave = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from('saved_resources')
+        .delete()
+        .eq('user_id', userId)
+        .eq('resource_id', resourceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved-resources'] });
+    },
+  });
+
+  return { save, unsave };
+}

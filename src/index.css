@@ -1,0 +1,148 @@
+/* Sebastian Strong Foundation - SS Navigator Design System
+   Brand palette: Navy #10233B, Gold #FEC415, Cream #F8F9F3, Dark #1D1C1C
+   Font: Poppins (Google Fonts)
+   Tone: Warm, compassionate, hopeful
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core palette - Sebastian Strong brand */
+    --background: 60 17% 97%;          /* Cream #F8F9F3 */
+    --foreground: 0 1% 11%;            /* Dark #1D1C1C */
+
+    /* Card surfaces */
+    --card: 40 40% 97%;                /* Ivory #FCF8F1 */
+    --card-foreground: 0 1% 11%;
+
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 1% 11%;
+
+    /* Primary - Dark Navy (Sebastian Strong brand) */
+    --primary: 214 58% 15%;            /* #10233B */
+    --primary-foreground: 60 17% 97%;
+
+    /* Secondary */
+    --secondary: 214 20% 92%;
+    --secondary-foreground: 214 58% 15%;
+
+    /* Muted */
+    --muted: 214 14% 95%;
+    --muted-foreground: 214 10% 48%;
+
+    /* Accent - Gold (Sebastian Strong brand) */
+    --accent: 43 99% 54%;              /* #FEC415 */
+    --accent-foreground: 214 58% 15%;
+
+    /* Highlight - same gold for emphasis */
+    --highlight: 43 99% 54%;
+    --highlight-foreground: 214 58% 15%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders & inputs */
+    --border: 214 16% 88%;
+    --input: 214 16% 88%;
+    --ring: 43 99% 54%;                /* Gold ring */
+
+    --radius: 0.625rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(214 58% 15%) 0%, hsl(214 58% 22%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(43 99% 54%) 0%, hsl(38 95% 48%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(60 17% 97%) 0%, hsl(40 40% 94%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(40 40% 97%) 0%, hsl(43 30% 93%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(214 58% 15% / 0.06);
+    --shadow-md: 0 4px 6px -1px hsl(214 58% 15% / 0.08), 0 2px 4px -2px hsl(214 58% 15% / 0.04);
+    --shadow-lg: 0 10px 15px -3px hsl(214 58% 15% / 0.08), 0 4px 6px -4px hsl(214 58% 15% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(214 58% 15% / 0.1), 0 8px 10px -6px hsl(214 58% 15% / 0.04);
+    --shadow-card: 0 1px 3px 0 hsl(214 58% 15% / 0.06), 0 1px 2px -1px hsl(214 58% 15% / 0.03);
+
+    /* Sidebar - deep navy */
+    --sidebar-background: 214 58% 15%;  /* #10233B */
+    --sidebar-foreground: 60 17% 95%;
+    --sidebar-primary: 43 99% 54%;      /* Gold for active items */
+    --sidebar-primary-foreground: 214 58% 15%;
+    --sidebar-accent: 214 58% 20%;
+    --sidebar-accent-foreground: 60 17% 95%;
+    --sidebar-border: 214 58% 20%;
+    --sidebar-ring: 43 99% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-gold {
+    background: var(--gradient-gold);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Crisis banner pulse */
+  .crisis-pulse {
+    animation: crisis-pulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes crisis-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
