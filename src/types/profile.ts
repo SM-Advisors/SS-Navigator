@@ -4,7 +4,7 @@ export type UserProfile = Tables<"user_profiles">;
 export type TreatmentStage = UserProfile["treatment_stage"];
 export type UserRole = UserProfile["role"];
 
-export const TREATMENT_STAGE_LABELS: Record<TreatmentStage, string> = {
+export const TREATMENT_STAGE_LABELS: Record<NonNullable<TreatmentStage>, string> = {
   newly_diagnosed: "Newly Diagnosed",
   in_treatment: "In Treatment",
   post_treatment: "Post Treatment",

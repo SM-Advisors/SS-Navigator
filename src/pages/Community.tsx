@@ -119,9 +119,8 @@ export default function Community() {
             <div className="space-y-4">
               {messages.map(msg => {
                 const isOwn = msg.user_id === user?.id;
-                const displayName = msg.user_profiles?.display_name ?? 'Community Member';
-                const role = msg.user_profiles?.role;
-                const isNavigator = role === 'navigator' || role === 'admin';
+                const displayName = 'Community Member';
+                const isNavigator = false;
 
                 return (
                   <div key={msg.id} className="flex gap-3">
@@ -142,7 +141,7 @@ export default function Community() {
                           </Badge>
                         )}
                         <span className="text-xs text-muted-foreground">
-                          {formatRelativeTime(msg.created_at)}
+                          {formatRelativeTime(msg.created_at ?? new Date().toISOString())}
                         </span>
                       </div>
                       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">

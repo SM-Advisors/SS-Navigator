@@ -82,7 +82,7 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
         )}
 
         <span className="text-xs text-muted-foreground">
-          {formatRelativeTime(message.created_at)}
+          {formatRelativeTime(message.created_at ?? new Date().toISOString())}
         </span>
       </div>
     </div>

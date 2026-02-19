@@ -17,8 +17,8 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
       if (filters.search) {
         query = query.textSearch('search_vector', filters.search, { type: 'websearch' });
       }
-      if (filters.category) {
-        query = query.eq('category', filters.category);
+      if (filters.category && filters.category !== 'all') {
+        query = query.eq('category', filters.category as Exclude<typeof filters.category, 'all'>);
       }
       if (filters.state) {
         query = query.or(`applicable_states.cs.{${filters.state}},applicable_states.eq.{}`);
