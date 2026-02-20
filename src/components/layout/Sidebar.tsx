@@ -28,8 +28,8 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-ss-gold flex items-center justify-center">
-            <span className="text-ss-dark font-bold text-sm">SS</span>
+          <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center">
+            <span className="text-white font-bold text-sm">SS</span>
           </div>
           <div>
             <p className="font-bold text-white text-sm leading-tight">SS Navigator</p>
@@ -50,7 +50,7 @@ export default function Sidebar() {
                   cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-ss-gold text-ss-dark'
+                      ? 'bg-ss-teal text-ss-navy'
                       : 'text-white/70 hover:bg-white/10 hover:text-white'
                   )
                 }

@@ -73,9 +73,10 @@ export default {
   				ring: 'hsl(var(--sidebar-ring))'
   			},
   			'ss-navy': '#10233B',
-  			'ss-gold': '#FEC415',
-  			'ss-cream': '#F8F9F3',
-  			'ss-ivory': '#FCF8F1',
+  			'ss-teal': '#7BBEB5',
+  			'ss-teal-light': '#C3DFD9',
+  			'ss-cream': '#EEF5F3',
+  			'ss-ivory': '#F5FAF8',
   			'ss-dark': '#1D1C1C'
   		},
   		borderRadius: {
@@ -128,12 +129,12 @@ export default {
   					transform: 'scale(1)'
   				}
   			},
-  			'pulse-gold': {
+  		'pulse-teal': {
   				'0%, 100%': {
-  					boxShadow: '0 0 0 0 hsl(43 99% 54% / 0.4)'
+  					boxShadow: '0 0 0 0 hsl(168 35% 72% / 0.4)'
   				},
   				'50%': {
-  					boxShadow: '0 0 0 8px hsl(43 99% 54% / 0)'
+  					boxShadow: '0 0 0 8px hsl(168 35% 72% / 0)'
   				}
   			}
   		},
@@ -143,7 +144,7 @@ export default {
   			'fade-in': 'fade-in 0.5s ease-out forwards',
   			'slide-up': 'slide-up 0.5s ease-out forwards',
   			'scale-in': 'scale-in 0.3s ease-out forwards',
-  			'pulse-gold': 'pulse-gold 2s ease-in-out infinite'
+  			'pulse-teal': 'pulse-teal 2s ease-in-out infinite'
   		},
   		boxShadow: {
   			card: 'var(--shadow-card)',

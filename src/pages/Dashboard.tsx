@@ -27,7 +27,7 @@ const quickActions = [
     icon: Users,
     label: 'Community',
     description: 'Connect with other families',
-    color: 'bg-green-50 text-green-700 border-green-100',
+    color: 'bg-ss-teal/10 text-ss-navy border-ss-teal/20',
     tourId: 'dashboard-community',
   },
   {
@@ -35,7 +35,7 @@ const quickActions = [
     icon: Bookmark,
     label: 'Saved Resources',
     description: 'Access your bookmarked resources',
-    color: 'bg-amber-50 text-amber-700 border-amber-100',
+    color: 'bg-ss-teal/10 text-ss-navy border-ss-teal/20',
     tourId: 'dashboard-saved',
   },
 ];
@@ -94,7 +94,7 @@ export default function Dashboard() {
       <Card className="border-ss-navy/20 bg-ss-navy text-white" data-tour="navigator-cta">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Phone className="h-4 w-4 text-ss-gold" />
+            <Phone className="h-4 w-4 text-ss-teal" />
             Talk to a Real Navigator
           </CardTitle>
         </CardHeader>
@@ -102,7 +102,7 @@ export default function Dashboard() {
           <p className="text-white/70 text-sm mb-4">
             Our nurse navigators provide free, personalized support for your family. No appointment needed.
           </p>
-          <Button asChild className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-semibold">
+          <Button asChild className="bg-ss-teal text-ss-navy hover:bg-ss-teal/90 font-semibold">
             <Link to="/contact">
               Contact a Navigator
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -113,7 +113,7 @@ export default function Dashboard() {
 
       {/* Profile completion prompt */}
       {profile && (!profile.diagnosis || !profile.state) && (
-        <Card className="border-ss-gold/40 bg-ss-gold/10">
+        <Card className="border-ss-teal/40 bg-ss-teal/10">
           <CardContent className="p-4 flex items-center justify-between gap-4">
             <div>
               <p className="font-semibold text-ss-navy text-sm">Complete Your Profile</p>
