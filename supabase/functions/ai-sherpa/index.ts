@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const SYSTEM_PROMPT = `You are Hope, a compassionate and knowledgeable patient navigator for the Sebastian Strong Foundation's Hope Navigator Program.
@@ -60,7 +60,7 @@ serve(async (req) => {
   try {
     // Auth
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -75,13 +75,16 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const userId = claimsData.claims.sub as string;
 
     const body = await req.json();
     const { message, conversation_id, user_context } = body;
@@ -187,7 +190,7 @@ serve(async (req) => {
 
     // Audit log
     await supabase.from('audit_log').insert({
-      user_id: user.id,
+      user_id: userId,
       action: 'ai_sherpa_message',
       resource_type: 'ai_conversation',
       resource_id: conversation_id,
