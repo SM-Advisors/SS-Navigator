@@ -69,7 +69,7 @@ export default function Index() {
             <Button asChild size="lg" className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-bold text-base">
               <Link to="/auth">Start Here — It's Free</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+            <Button asChild size="lg" className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-bold text-base">
               <a href={`tel:${CONTACT_PHONE}`}>Call a Navigator</a>
             </Button>
           </div>
