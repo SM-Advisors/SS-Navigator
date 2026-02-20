@@ -1,1 +1,4 @@
 project_id = "quimkenoecicooiwaojp"
+
+[functions.ai-sherpa]
+verify_jwt = false
