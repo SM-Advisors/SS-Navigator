@@ -107,8 +107,8 @@ export default function AISherpa() {
               <MessageSquare className="h-4 w-4" />
             </Button>
           )}
-          <div className="h-8 w-8 rounded-full bg-ss-gold flex items-center justify-center shrink-0">
-            <Sparkles className="h-4 w-4 text-ss-dark" />
+          <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
             <p className="font-semibold text-sm text-ss-navy">Hope</p>
@@ -126,8 +126,8 @@ export default function AISherpa() {
             <div className="space-y-6">
               {/* Welcome */}
               <div className="text-center py-6">
-                <div className="inline-flex h-16 w-16 rounded-full bg-ss-gold/20 items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-ss-gold" />
+                <div className="inline-flex h-16 w-16 rounded-full bg-ss-teal/20 items-center justify-center mb-4">
+                  <Sparkles className="h-8 w-8 text-ss-teal" />
                 </div>
                 <h2 className="text-lg font-bold text-ss-navy mb-2">Hi, I'm Hope</h2>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
@@ -165,8 +165,8 @@ export default function AISherpa() {
               ))}
               {sendMessage.isPending && (
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-ss-gold flex items-center justify-center shrink-0">
-                    <Sparkles className="h-4 w-4 text-ss-dark" />
+                   <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
+                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
                   <div className="bg-white border rounded-2xl rounded-tl-sm px-4 py-3">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

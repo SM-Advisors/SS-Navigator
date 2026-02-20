@@ -33,8 +33,8 @@ export default function Index() {
       {/* Header */}
       <header className="bg-ss-navy text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-ss-gold flex items-center justify-center">
-            <span className="text-ss-dark font-bold">SS</span>
+          <div className="h-9 w-9 rounded-full bg-ss-teal flex items-center justify-center">
+            <span className="text-white font-bold">SS</span>
           </div>
           <div>
             <p className="font-bold text-sm leading-tight">SS Navigator</p>
@@ -45,31 +45,31 @@ export default function Index() {
           <Button asChild variant="ghost" className="text-white hover:text-white hover:bg-white/10" size="sm">
             <Link to="/auth">Sign In</Link>
           </Button>
-          <Button asChild className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-semibold" size="sm">
+          <Button asChild className="bg-ss-teal text-ss-navy hover:bg-ss-teal/90 font-semibold" size="sm">
             <Link to="/auth">Get Started</Link>
           </Button>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="bg-ss-navy text-white px-6 py-16 md:py-24 text-center">
+      <section className="bg-ss-teal-light text-ss-navy px-6 py-16 md:py-24 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-ss-gold/20 text-ss-gold rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-ss-navy/10 text-ss-navy rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <Heart className="h-4 w-4" />
             Hope Navigator Program
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
             You Don't Have to Navigate This Alone
           </h1>
-          <p className="text-white/80 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
+          <p className="text-ss-navy/70 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
             SS Navigator connects families facing childhood cancer with the resources, community, and
             expert guidance they need — all in one place, completely free.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-bold text-base">
+            <Button asChild size="lg" className="bg-ss-navy text-white hover:bg-ss-navy/90 font-bold text-base">
               <Link to="/auth">Start Here — It's Free</Link>
             </Button>
-            <Button asChild size="lg" className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-bold text-base">
+            <Button asChild size="lg" className="bg-ss-navy text-white hover:bg-ss-navy/90 font-bold text-base">
               <a href={`tel:${CONTACT_PHONE}`}>Call a Navigator</a>
             </Button>
           </div>
@@ -83,7 +83,7 @@ export default function Index() {
           {features.map(({ icon: Icon, title, description }) => (
             <Card key={title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6">
-                <div className="h-10 w-10 rounded-lg bg-ss-navy/10 flex items-center justify-center mb-4">
+                <div className="h-10 w-10 rounded-lg bg-ss-teal/15 flex items-center justify-center mb-4">
                   <Icon className="h-5 w-5 text-ss-navy" />
                 </div>
                 <h3 className="font-semibold text-ss-navy mb-2">{title}</h3>
@@ -97,8 +97,8 @@ export default function Index() {
       {/* Privacy / Trust */}
       <section className="bg-white px-6 py-12">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex h-12 w-12 rounded-full bg-green-100 items-center justify-center mb-4">
-            <Shield className="h-6 w-6 text-green-700" />
+          <div className="inline-flex h-12 w-12 rounded-full bg-ss-teal/15 items-center justify-center mb-4">
+            <Shield className="h-6 w-6 text-ss-navy" />
           </div>
           <h2 className="text-xl font-bold text-ss-navy mb-3">Your Privacy is Sacred</h2>
           <p className="text-muted-foreground leading-relaxed">
@@ -113,7 +113,7 @@ export default function Index() {
       <section className="bg-ss-navy text-white px-6 py-12 text-center">
         <h2 className="text-2xl font-bold mb-4">Ready to find your footing?</h2>
         <p className="text-white/70 mb-6">Join families who've found support through SS Navigator.</p>
-        <Button asChild size="lg" className="bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-bold">
+        <Button asChild size="lg" className="bg-ss-teal text-ss-navy hover:bg-ss-teal/90 font-bold">
           <Link to="/auth">Create Your Free Account</Link>
         </Button>
       </section>

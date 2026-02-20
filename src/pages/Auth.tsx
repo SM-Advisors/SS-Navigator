@@ -178,7 +178,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex h-14 w-14 rounded-full bg-ss-navy items-center justify-center mb-4">
-            <span className="text-ss-gold font-bold text-xl">SS</span>
+            <span className="text-ss-teal font-bold text-xl">SS</span>
           </div>
           <h1 className="text-2xl font-bold text-ss-navy">SS Navigator</h1>
           <p className="text-muted-foreground text-sm mt-1">Sebastian Strong Foundation</p>

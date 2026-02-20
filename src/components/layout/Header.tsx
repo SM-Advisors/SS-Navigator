@@ -38,7 +38,7 @@ export default function Header() {
         <Button
           asChild
           size="sm"
-          className="hidden sm:flex bg-ss-gold text-ss-dark hover:bg-ss-gold/90 font-semibold"
+          className="hidden sm:flex bg-ss-teal text-ss-navy hover:bg-ss-teal/90 font-semibold"
           data-tour="contact-navigator"
         >
           <Link to="/contact">Talk to a Navigator</Link>
