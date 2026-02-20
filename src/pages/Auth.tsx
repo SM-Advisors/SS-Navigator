@@ -42,11 +42,22 @@ function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    const { error } = await signIn(data.email, data.password);
-    if (error) {
-      toast.error('Sign in failed', { description: error.message });
-    } else {
-      navigate(from, { replace: true });
+    try {
+      const { error } = await signIn(data.email, data.password);
+      if (error) {
+        const msg = error.message?.toLowerCase() || '';
+        if (msg.includes('email not confirmed')) {
+          toast.error('Email not confirmed', { description: 'Please check your inbox for a confirmation link, or contact support.' });
+        } else if (msg.includes('invalid')) {
+          toast.error('Invalid credentials', { description: 'Please check your email and password.' });
+        } else {
+          toast.error('Sign in failed', { description: error.message });
+        }
+      } else {
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      toast.error('Connection error', { description: 'Unable to reach the server. Please try again.' });
     }
   };
 
@@ -93,20 +104,23 @@ function RegisterForm() {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
-    const { error } = await signUp(data.email, data.password, data.displayName);
-    if (error) {
-      // Provide user-friendly messages for common errors
-      const msg = error.message?.toLowerCase() || '';
-      if (msg.includes('rate limit')) {
-        toast.error('Too many attempts', { description: 'Please wait a few minutes before trying again.' });
-      } else if (msg.includes('already registered') || msg.includes('already been registered')) {
-        toast.error('Account already exists', { description: 'Try signing in instead.' });
+    try {
+      const { error } = await signUp(data.email, data.password, data.displayName);
+      if (error) {
+        const msg = error.message?.toLowerCase() || '';
+        if (msg.includes('rate limit')) {
+          toast.error('Too many attempts', { description: 'Please wait a few minutes before trying again.' });
+        } else if (msg.includes('already registered') || msg.includes('already been registered')) {
+          toast.error('Account already exists', { description: 'Try signing in instead.' });
+        } else {
+          toast.error('Registration failed', { description: error.message });
+        }
       } else {
-        toast.error('Registration failed', { description: error.message });
+        toast.success('Account created successfully!');
+        navigate('/onboarding');
       }
-    } else {
-      toast.success('Account created successfully!');
-      navigate('/onboarding');
+    } catch (err) {
+      toast.error('Connection error', { description: 'Unable to reach the server. Please try again.' });
     }
   };
 
