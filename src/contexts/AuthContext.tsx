@@ -69,15 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await loadProfile(session.user.id);
+        // Use setTimeout to avoid deadlocking the Supabase auth lock
+        setTimeout(() => loadProfile(session.user.id), 0);
       } else {
         setProfile(null);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
