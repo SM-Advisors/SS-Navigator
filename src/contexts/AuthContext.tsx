@@ -59,28 +59,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let isMounted = true;
+
+    // Set up listener FIRST (before getSession)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadProfile(session.user.id).finally(() => setLoading(false));
+        // Use setTimeout to avoid deadlocking the Supabase auth lock
+        setTimeout(() => {
+          if (isMounted) {
+            loadProfile(session.user.id).finally(() => {
+              if (isMounted) setLoading(false);
+            });
+          }
+        }, 0);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id).finally(() => {
+          if (isMounted) setLoading(false);
+        });
       } else {
         setLoading(false);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Use setTimeout to avoid deadlocking the Supabase auth lock
-        setTimeout(() => loadProfile(session.user.id), 0);
-      } else {
-        setProfile(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [loadProfile]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
