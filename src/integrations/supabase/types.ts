@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_test_conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          evaluation_notes: string | null
+          id: string
+          messages: Json
+          result: string | null
+          test_type: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          evaluation_notes?: string | null
+          id?: string
+          messages?: Json
+          result?: string | null
+          test_type?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          evaluation_notes?: string | null
+          id?: string
+          messages?: Json
+          result?: string | null
+          test_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_test_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           created_at: string | null
@@ -243,6 +284,80 @@ export type Database = {
           },
         ]
       }
+      community_replies: {
+        Row: {
+          author_name: string
+          author_role: string | null
+          body: string
+          created_at: string
+          id: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          author_role?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_replies_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "community_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_topics: {
+        Row: {
+          author_name: string
+          author_role: string | null
+          body: string
+          created_at: string
+          id: string
+          reply_count: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          author_role?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          reply_count?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          reply_count?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           assigned_navigator_id: string | null
@@ -290,6 +405,134 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      dashboard_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      practice_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          is_submitted: boolean
+          messages: Json
+          module_id: string
+          session_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_submitted?: boolean
+          messages?: Json
+          module_id: string
+          session_id: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_submitted?: boolean
+          messages?: Json
+          module_id?: string
+          session_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      registration_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          organization_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          organization_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resources: {
         Row: {
@@ -404,6 +647,71 @@ export type Database = {
           },
         ]
       }
+      user_agents: {
+        Row: {
+          created_at: string
+          deployed_at: string | null
+          description: string | null
+          id: string
+          is_deployed: boolean
+          is_shared: boolean
+          last_test_results: Json | null
+          name: string
+          parent_version_id: string | null
+          shared_at: string | null
+          status: string
+          system_prompt: string
+          template_data: Json
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          deployed_at?: string | null
+          description?: string | null
+          id?: string
+          is_deployed?: boolean
+          is_shared?: boolean
+          last_test_results?: Json | null
+          name?: string
+          parent_version_id?: string | null
+          shared_at?: string | null
+          status?: string
+          system_prompt?: string
+          template_data?: Json
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          deployed_at?: string | null
+          description?: string | null
+          id?: string
+          is_deployed?: boolean
+          is_shared?: boolean
+          last_test_results?: Json | null
+          name?: string
+          parent_version_id?: string | null
+          shared_at?: string | null
+          status?: string
+          system_prompt?: string
+          template_data?: Json
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_agents_parent_version_id_fkey"
+            columns: ["parent_version_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           additional_info: string | null
@@ -414,8 +722,10 @@ export type Database = {
           diagnosis_date: string | null
           display_name: string | null
           id: string
+          last_login_at: string | null
           notification_preferences: Json | null
           onboarding_completed: boolean | null
+          organization_id: string | null
           priority_categories: string[] | null
           state: string | null
           tour_completed: boolean | null
@@ -434,8 +744,10 @@ export type Database = {
           diagnosis_date?: string | null
           display_name?: string | null
           id?: string
+          last_login_at?: string | null
           notification_preferences?: Json | null
           onboarding_completed?: boolean | null
+          organization_id?: string | null
           priority_categories?: string[] | null
           state?: string | null
           tour_completed?: boolean | null
@@ -456,8 +768,10 @@ export type Database = {
           diagnosis_date?: string | null
           display_name?: string | null
           id?: string
+          last_login_at?: string | null
           notification_preferences?: Json | null
           onboarding_completed?: boolean | null
+          organization_id?: string | null
           priority_categories?: string[] | null
           state?: string | null
           tour_completed?: boolean | null
@@ -469,7 +783,15 @@ export type Database = {
           user_id?: string
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -510,6 +832,26 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_lesson_chunks: {
+        Args: {
+          filter_lesson_id?: string
+          filter_module_id?: string
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          id: string
+          metadata: Json
+          similarity: number
+          source: string
+          text: string
+        }[]
+      }
+      validate_registration_code: {
+        Args: { input_code: string }
+        Returns: Json
       }
     }
     Enums: {
