@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { TREATMENT_STAGE_LABELS, US_STATES, UserProfile } from '@/types/profile';
 import { RESOURCE_CATEGORIES } from '@/lib/resource-categories';
@@ -192,20 +191,25 @@ export default function Onboarding() {
                 {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon: Icon, color }]) => {
                   const isSelected = priorityCategories.includes(key);
                   return (
-                    <button
+                    <div
                       key={key}
-                      type="button"
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      tabIndex={0}
+                      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggleCategory(key)}
                       onClick={() => toggleCategory(key)}
-                      className={`flex items-center gap-2 p-3 rounded-lg border text-left text-sm transition-all ${
+                      className={`flex items-center gap-2 p-3 rounded-lg border text-left text-sm transition-all cursor-pointer select-none ${
                         isSelected
                           ? 'border-ss-navy bg-ss-navy/5 font-medium text-ss-navy'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <Checkbox checked={isSelected} onCheckedChange={() => {}} className="pointer-events-none" />
+                      <div className={`h-4 w-4 shrink-0 rounded-sm border flex items-center justify-center ${isSelected ? 'bg-ss-navy border-ss-navy' : 'border-gray-300'}`}>
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                      </div>
                       <Icon className={`h-4 w-4 ${color}`} />
                       <span className="text-xs leading-tight">{label}</span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>

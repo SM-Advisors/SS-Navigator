@@ -19,6 +19,11 @@ export function useCommunityChannels() {
   });
 }
 
+export interface MessageWithProfile extends CommunityMessage {
+  display_name: string | null;
+  user_role: string | null;
+}
+
 export function useCommunityMessages(channelId: string | null) {
   const queryClient = useQueryClient();
 
@@ -26,7 +31,8 @@ export function useCommunityMessages(channelId: string | null) {
     queryKey: ['community-messages', channelId],
     enabled: !!channelId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch messages
+      const { data: msgs, error } = await supabase
         .from('community_messages')
         .select('*')
         .eq('channel_id', channelId!)
@@ -34,7 +40,29 @@ export function useCommunityMessages(channelId: string | null) {
         .order('created_at', { ascending: true })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as CommunityMessage[];
+      if (!msgs?.length) return [] as MessageWithProfile[];
+
+      // Fetch profiles for all unique senders
+      const uniqueUserIds = [...new Set(msgs.map(m => m.user_id))];
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name')
+        .in('user_id', uniqueUserIds);
+
+      // Fetch roles for all unique senders
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', uniqueUserIds);
+
+      const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p.display_name]));
+      const roleMap = new Map((roles ?? []).map(r => [r.user_id, r.role]));
+
+      return msgs.map(m => ({
+        ...m,
+        display_name: profileMap.get(m.user_id) ?? null,
+        user_role: roleMap.get(m.user_id) ?? null,
+      })) as MessageWithProfile[];
     },
   });
 

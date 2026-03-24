@@ -119,8 +119,9 @@ export default function Community() {
             <div className="space-y-4">
               {messages.map(msg => {
                 const isOwn = msg.user_id === user?.id;
-                const displayName = 'Community Member';
-                const isNavigator = false;
+                const msgWithProfile = msg as typeof msg & { display_name?: string | null; user_role?: string | null };
+                const displayName = msgWithProfile.display_name || 'Community Member';
+                const isNavigator = msgWithProfile.user_role === 'navigator' || msgWithProfile.user_role === 'admin';
 
                 return (
                   <div key={msg.id} className="flex gap-3">

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, RotateCcw, Save } from 'lucide-react';
+import { User, RotateCcw, Save, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -13,8 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { TREATMENT_STAGE_LABELS, US_STATES, UserProfile } from '@/types/profile';
 import { RESOURCE_CATEGORIES } from '@/lib/resource-categories';
@@ -29,6 +29,7 @@ const schema = z.object({
   state: z.string().optional(),
   city: z.string().optional(),
   zip_code: z.string().optional(),
+  additional_info: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof schema>;
@@ -50,6 +51,7 @@ export default function Profile() {
       state: profile?.state || undefined,
       city: profile?.city || '',
       zip_code: profile?.zip_code || '',
+      additional_info: profile?.additional_info || '',
     },
   });
 
@@ -100,7 +102,7 @@ export default function Profile() {
             <div>
               <Label htmlFor="display_name">Your Name</Label>
               <Input id="display_name" {...register('display_name')} />
-              {errors.display_name && <p className="text-xs text-red-500 mt-1">{errors.display_name.message}</p>}
+              {errors.display_name && <p className="text-xs text-destructive mt-1">{errors.display_name.message}</p>}
             </div>
           </CardContent>
         </Card>
@@ -187,23 +189,51 @@ export default function Profile() {
               {Object.entries(RESOURCE_CATEGORIES).map(([key, { label, icon: Icon, color }]) => {
                 const isSelected = priorityCategories.includes(key);
                 return (
-                  <button
+                  <div
                     key={key}
-                    type="button"
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    tabIndex={0}
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggleCategory(key)}
                     onClick={() => toggleCategory(key)}
-                    className={`flex items-center gap-2 p-3 rounded-lg border text-left text-sm transition-all ${
+                    className={`flex items-center gap-2 p-3 rounded-lg border text-left text-sm transition-all cursor-pointer select-none ${
                       isSelected
                         ? 'border-ss-navy bg-ss-navy/5 font-medium text-ss-navy'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-border hover:border-muted-foreground/40'
                     }`}
                   >
-                    <Checkbox checked={isSelected} onCheckedChange={() => {}} className="pointer-events-none" />
+                    <div className={`h-4 w-4 shrink-0 rounded-sm border flex items-center justify-center ${isSelected ? 'bg-ss-navy border-ss-navy' : 'border-muted-foreground/40'}`}>
+                      {isSelected && <Check className="h-3 w-3 text-white" />}
+                    </div>
                     <Icon className={`h-4 w-4 ${color}`} />
                     <span className="text-xs leading-tight">{label}</span>
-                  </button>
+                  </div>
                 );
               })}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Context for Hope (AI assistant) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Context for Hope</CardTitle>
+            <CardDescription className="text-sm">
+              Share anything that helps our AI assistant give you better, more personalized guidance.
+              This is private and only used to improve your experience.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              id="additional_info"
+              {...register('additional_info')}
+              placeholder={`Examples:\n• "We've already applied for St. Baldrick's and Alex's Lemonade Stand"\n• "Our biggest challenge right now is covering lodging near the hospital"\n• "Emma is 7 years old with relapsed ALL, in a Phase I trial at CHOP"\n• "We're a single-parent household with two other kids at home"`}
+              rows={6}
+              className="text-sm resize-none"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              The more context you provide, the better Hope can guide you to the right resources.
+            </p>
           </CardContent>
         </Card>
 
