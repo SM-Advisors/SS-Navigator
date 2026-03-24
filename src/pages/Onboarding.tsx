@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { TREATMENT_STAGE_LABELS, US_STATES, UserProfile } from '@/types/profile';
 import { RESOURCE_CATEGORIES } from '@/lib/resource-categories';
