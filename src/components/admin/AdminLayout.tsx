@@ -16,7 +16,6 @@ const adminNavItems = [
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { profile } = useAuth();
   const location = useLocation();
 
   return (
