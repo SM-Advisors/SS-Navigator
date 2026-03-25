@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { useEvalRuns, useEvalResults, EvalRun, EvalResult } from '@/hooks/useEval';
+import { useEvalRuns, useEvalResults, EvalRun } from '@/hooks/useEval';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
