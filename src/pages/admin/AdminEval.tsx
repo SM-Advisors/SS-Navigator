@@ -27,11 +27,6 @@ function RunStatusBadge({ status }: { status: EvalRun['status'] }) {
   return <Badge className="bg-red-100 text-red-800 border-red-200">Failed</Badge>;
 }
 
-function MetricDelta({ val, format = (v: number) => v.toFixed(1) }: { val: number; format?: (v: number) => string }) {
-  if (Math.abs(val) < 0.001) return <span className="text-muted-foreground text-xs">±0</span>;
-  const color = val > 0 ? 'text-green-600' : 'text-red-600';
-  return <span className={`text-xs font-mono ${color}`}>{val > 0 ? '+' : ''}{format(val)}</span>;
-}
 
 function RunRow({ run, selected, onSelect }: { run: EvalRun; selected: boolean; onSelect: () => void }) {
   const successRate = run.total_prompts > 0 ? (run.success_count / run.total_prompts) * 100 : 0;
