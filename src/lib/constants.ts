@@ -4,9 +4,9 @@ export const FOUNDATION_NAME = "Sebastian Strong Foundation";
 export const FOUNDATION_URL = "https://www.sebastianstrong.org";
 
 // Contact info
-export const CONTACT_PHONE = "(786) 321-6166"; // Sebastian Strong Foundation
-export const CONTACT_EMAIL = "info@sebastianstrong.org";
-export const CONTACT_ADDRESS = "PO Box 661156, Miami, FL 33266";
+export const CONTACT_PHONE = "305-335-0894"; // Sebastian Strong Foundation
+export const CONTACT_EMAIL = "oscar@sebastianstrong.org";
+export const CONTACT_ADDRESS = "PO Box 661156, Miami Springs, FL 33266";
 
 // Crisis resources (always visible)
 export const CRISIS_RESOURCES = [
