@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SessionProvider } from '@/contexts/SessionContext';
 import { supabaseConfigured } from '@/integrations/supabase/client';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminRoute from '@/components/auth/AdminRoute';
 import AppLayout from '@/components/layout/AppLayout';
 import GuidedTour from '@/components/tour/GuidedTour';
 
