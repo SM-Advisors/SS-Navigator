@@ -86,6 +86,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 export function useSession() {
   const context = useContext(SessionContext);
-  if (!context) throw new Error('useSession must be used within SessionProvider');
+  if (!context) {
+    // Return a no-op default so components render safely outside the provider
+    return { showWarning: false, extendSession: () => {}, timeRemaining: 0 };
+  }
   return context;
 }
