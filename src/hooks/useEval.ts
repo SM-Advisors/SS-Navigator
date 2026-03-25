@@ -215,7 +215,8 @@ export function useRunEval() {
         }
 
         // Persist result
-        await supabase.from('eval_results').insert(result);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await supabase.from('eval_results').insert(result as any);
         qc.invalidateQueries({ queryKey: ['eval-results', runId] });
 
         // Small delay to avoid rate limits
