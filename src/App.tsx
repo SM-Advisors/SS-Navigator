@@ -103,6 +103,40 @@ export default function App() {
                 <Route path="/profile" element={<Profile />} />
               </Route>
 
+              {/* Admin routes (admin/navigator role required) */}
+              <Route
+                path="/admin/knowledge-base"
+                element={
+                  <ProtectedRoute>
+                    <AdminKnowledgeBase />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/rag-test"
+                element={
+                  <ProtectedRoute>
+                    <AdminRagTest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/eval"
+                element={
+                  <ProtectedRoute>
+                    <AdminEval />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/eval/compare"
+                element={
+                  <ProtectedRoute>
+                    <AdminEvalCompare />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
 
