@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SessionProvider } from '@/contexts/SessionContext';
 import { supabaseConfigured } from '@/integrations/supabase/client';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminRoute from '@/components/auth/AdminRoute';
 import AppLayout from '@/components/layout/AppLayout';
 import GuidedTour from '@/components/tour/GuidedTour';
 
@@ -107,33 +108,33 @@ export default function App() {
               <Route
                 path="/admin/knowledge-base"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminKnowledgeBase />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/rag-test"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminRagTest />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/eval"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminEval />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/eval/compare"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminEvalCompare />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
 
