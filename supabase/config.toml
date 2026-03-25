@@ -2,3 +2,10 @@ project_id = "quimkenoecicooiwaojp"
 
 [functions.ai-sherpa]
 verify_jwt = false
+
+[functions.process-document]
+verify_jwt = false
+
+[functions.navigator-chat]
+verify_jwt = false
+

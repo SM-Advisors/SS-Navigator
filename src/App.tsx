@@ -21,6 +21,12 @@ import Contact from '@/pages/Contact';
 import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 
+// Admin pages
+import AdminKnowledgeBase from '@/pages/admin/AdminKnowledgeBase';
+import AdminRagTest from '@/pages/admin/AdminRagTest';
+import AdminEval from '@/pages/admin/AdminEval';
+import AdminEvalCompare from '@/pages/admin/AdminEvalCompare';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -96,6 +102,40 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>
+
+              {/* Admin routes (admin/navigator role required) */}
+              <Route
+                path="/admin/knowledge-base"
+                element={
+                  <ProtectedRoute>
+                    <AdminKnowledgeBase />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/rag-test"
+                element={
+                  <ProtectedRoute>
+                    <AdminRagTest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/eval"
+                element={
+                  <ProtectedRoute>
+                    <AdminEval />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/eval/compare"
+                element={
+                  <ProtectedRoute>
+                    <AdminEvalCompare />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

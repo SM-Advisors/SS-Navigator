@@ -433,6 +433,194 @@ export type Database = {
         }
         Relationships: []
       }
+      eval_results: {
+        Row: {
+          category: string
+          created_at: string | null
+          error_message: string | null
+          grounded_in_sources: boolean | null
+          id: string
+          latency_ms: number | null
+          prompt_id: string
+          prompt_text: string
+          reply: string | null
+          response_length: number | null
+          retrieved_chunks: Json | null
+          run_id: string
+          sources: Json | null
+          status: string
+          suggested_prompts: string[] | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          error_message?: string | null
+          grounded_in_sources?: boolean | null
+          id?: string
+          latency_ms?: number | null
+          prompt_id: string
+          prompt_text: string
+          reply?: string | null
+          response_length?: number | null
+          retrieved_chunks?: Json | null
+          run_id: string
+          sources?: Json | null
+          status?: string
+          suggested_prompts?: string[] | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          error_message?: string | null
+          grounded_in_sources?: boolean | null
+          id?: string
+          latency_ms?: number | null
+          prompt_id?: string
+          prompt_text?: string
+          reply?: string | null
+          response_length?: number | null
+          retrieved_chunks?: Json | null
+          run_id?: string
+          sources?: Json | null
+          status?: string
+          suggested_prompts?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eval_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "eval_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eval_runs: {
+        Row: {
+          avg_latency_ms: number | null
+          avg_response_length: number | null
+          completed_at: string | null
+          created_at: string | null
+          error_count: number | null
+          grounded_count: number | null
+          id: string
+          kb_version: string | null
+          model: string
+          notes: string | null
+          prompt_version: string
+          retrieval_count: number
+          retrieval_threshold: number
+          run_by: string | null
+          started_at: string | null
+          status: string
+          success_count: number | null
+          suite_id: string
+          suite_name: string
+          total_prompts: number | null
+          unique_sources_used: number | null
+        }
+        Insert: {
+          avg_latency_ms?: number | null
+          avg_response_length?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_count?: number | null
+          grounded_count?: number | null
+          id?: string
+          kb_version?: string | null
+          model?: string
+          notes?: string | null
+          prompt_version?: string
+          retrieval_count?: number
+          retrieval_threshold?: number
+          run_by?: string | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          suite_id: string
+          suite_name: string
+          total_prompts?: number | null
+          unique_sources_used?: number | null
+        }
+        Update: {
+          avg_latency_ms?: number | null
+          avg_response_length?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_count?: number | null
+          grounded_count?: number | null
+          id?: string
+          kb_version?: string | null
+          model?: string
+          notes?: string | null
+          prompt_version?: string
+          retrieval_count?: number
+          retrieval_threshold?: number
+          run_by?: string | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          suite_id?: string
+          suite_name?: string
+          total_prompts?: number | null
+          unique_sources_used?: number | null
+        }
+        Relationships: []
+      }
+      knowledge_base: {
+        Row: {
+          applicable_states: string[] | null
+          category: string | null
+          chunk_index: number
+          content: string
+          created_at: string | null
+          document_id: string
+          document_title: string
+          embedding: string | null
+          id: string
+          metadata: Json | null
+          program: string | null
+          resource_type: string | null
+          source_url: string | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          applicable_states?: string[] | null
+          category?: string | null
+          chunk_index?: number
+          content: string
+          created_at?: string | null
+          document_id: string
+          document_title: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          program?: string | null
+          resource_type?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          applicable_states?: string[] | null
+          category?: string | null
+          chunk_index?: number
+          content?: string
+          created_at?: string | null
+          document_id?: string
+          document_title?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          program?: string | null
+          resource_type?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string | null
@@ -832,6 +1020,30 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_knowledge_base: {
+        Args: {
+          filter_category?: string
+          filter_program?: string
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          applicable_states: string[]
+          category: string
+          chunk_index: number
+          content: string
+          document_id: string
+          document_title: string
+          id: string
+          metadata: Json
+          program: string
+          resource_type: string
+          similarity: number
+          source_url: string
+          tags: string[]
+        }[]
       }
       match_lesson_chunks: {
         Args: {
