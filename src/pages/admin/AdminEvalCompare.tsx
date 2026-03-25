@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useEvalRuns, useEvalResults, EvalRun } from '@/hooks/useEval';
-import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

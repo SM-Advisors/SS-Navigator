@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { useEvalRuns, useEvalResults, useRunEval, EvalRun } from '@/hooks/useEval';
+import { useEvalRuns, useEvalResults, useRunEval, EvalRun, EvalResult } from '@/hooks/useEval';
 import { ALL_SUITES } from '@/data/eval-prompts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+
 
 const MODELS = [
   'claude-sonnet-4-5-20250929',
