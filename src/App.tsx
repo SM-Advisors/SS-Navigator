@@ -108,33 +108,33 @@ export default function App() {
               <Route
                 path="/admin/knowledge-base"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminKnowledgeBase />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/rag-test"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminRagTest />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/eval"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminEval />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
               <Route
                 path="/admin/eval/compare"
                 element={
-                  <ProtectedRoute>
+                  <AdminRoute>
                     <AdminEvalCompare />
-                  </ProtectedRoute>
+                  </AdminRoute>
                 }
               />
 
