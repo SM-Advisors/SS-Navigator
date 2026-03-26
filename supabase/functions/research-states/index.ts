@@ -32,8 +32,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -71,46 +71,54 @@ Focus on STATE-SPECIFIC resources:
 - Local transportation assistance
 - State education support for seriously ill children
 
-Return a JSON object with key "resources" containing an array. Each resource needs:
-title, description (2-3 sentences), category (one of: financial, medical, emotional, practical, legal, educational, community, navigation, survivorship, sibling_support), organization_name, organization_url, organization_phone, organization_email, applicable_states (array of state codes from ${JSON.stringify(currentBatch)}), tags, is_crisis_resource.
+Return ONLY a JSON object with key "resources" containing an array. No markdown, no explanation. Each resource needs:
+title, description (2-3 sentences), category (one of: financial, medical, emotional, practical, legal, educational, community, navigation, survivorship, sibling_support), organization_name, organization_url, organization_phone (or null), organization_email (or null), applicable_states (array of state codes from ${JSON.stringify(currentBatch)}), tags (array of strings), is_crisis_resource (boolean).
 
-Make sure EVERY state in ${JSON.stringify(currentBatch)} has at least 2 resources.`;
+Make sure EVERY state in ${JSON.stringify(currentBatch)} has at least 2 resources. Use real organizations.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 8000,
         messages: [
-          { role: "system", content: "You are a research assistant for CHILDHOOD cancer resources. Only pediatric, never adult cancer. Return valid JSON only." },
           { role: "user", content: prompt },
         ],
-        temperature: 0.3,
-        response_format: { type: "json_object" },
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`OpenAI error [${response.status}]: ${errText}`);
+      throw new Error(`Anthropic error [${response.status}]: ${errText}`);
     }
 
     const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content ?? "{}";
+    const raw = data.content?.[0]?.text ?? "{}";
+    
+    // Strip markdown if present
+    let jsonStr = raw.trim();
+    if (jsonStr.startsWith("```")) {
+      jsonStr = jsonStr.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+    }
     
     let parsed;
-    try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+    try { parsed = JSON.parse(jsonStr); } catch { 
+      console.error("Parse failed, raw:", jsonStr.substring(0, 500));
+      parsed = {}; 
+    }
     let arr = Array.isArray(parsed) ? parsed : parsed.resources || [];
     if (!Array.isArray(arr)) {
       for (const v of Object.values(parsed)) {
-        if (Array.isArray(v)) { arr = v; break; }
+        if (Array.isArray(v)) { arr = v as any[]; break; }
       }
     }
 
-    const valid = arr.filter((r: any) => r.title && r.description && r.organization_name);
+    const valid = (arr as any[]).filter((r: any) => r.title && r.description && r.organization_name);
     const cleaned = valid.map((r: any) => ({
       title: String(r.title).substring(0, 255),
       description: String(r.description).substring(0, 1000),
