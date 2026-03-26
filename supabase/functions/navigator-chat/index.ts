@@ -49,17 +49,6 @@ Always respond with valid JSON:
   "crisisDetected": false
 }`;
 
-async function embedText(text: string, apiKey: string): Promise<number[]> {
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'text-embedding-3-small', input: text }),
-  });
-  if (!res.ok) throw new Error(`Embedding error: ${await res.text()}`);
-  const data = await res.json();
-  return data.data[0].embedding;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -75,7 +64,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY')!;
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -86,7 +74,6 @@ serve(async (req) => {
     const {
       message,
       user_context,
-      retrieval_threshold = 0.5,
       retrieval_count = 8,
       model = 'claude-sonnet-4-5-20250929',
     } = body;
@@ -97,16 +84,7 @@ serve(async (req) => {
       });
     }
 
-    // 1. Embed the query
-    let queryEmbedding: number[];
-    try {
-      queryEmbedding = await embedText(message, openaiKey);
-    } catch {
-      // Fall back to answering without RAG if embedding fails
-      queryEmbedding = [];
-    }
-
-    // 2. Retrieve relevant chunks
+    // 1. Retrieve relevant chunks using full-text search (no embeddings needed)
     let retrievedChunks: Array<{
       id: string; document_id: string; document_title: string;
       chunk_index: number; content: string; program: string | null;
@@ -114,23 +92,20 @@ serve(async (req) => {
       source_url: string | null; similarity: number;
     }> = [];
 
-    if (queryEmbedding.length > 0) {
-      const { data: chunks } = await supabase.rpc('match_knowledge_base', {
-        query_embedding: `[${queryEmbedding.join(',')}]`,
-        match_count: retrieval_count,
-        similarity_threshold: retrieval_threshold,
-      });
-      if (chunks) retrievedChunks = chunks;
-    }
+    const { data: chunks } = await supabase.rpc('match_knowledge_base_fts', {
+      query_text: message,
+      match_count: retrieval_count,
+    });
+    if (chunks) retrievedChunks = chunks;
 
-    // 3. Build context string
+    // 2. Build context string
     const contextStr = retrievedChunks.length > 0
       ? `\n\n## RETRIEVED KNOWLEDGE BASE CONTEXT\nUse the following retrieved information to ground your response:\n\n${retrievedChunks
-          .map((c, i) => `[${i + 1}] Source: "${c.document_title}" (similarity: ${c.similarity?.toFixed(3)})\n${c.content}`)
+          .map((c, i) => `[${i + 1}] Source: "${c.document_title}" (relevance: ${c.similarity?.toFixed(3)})\n${c.content}`)
           .join('\n\n---\n\n')}`
       : '\n\n## NOTE: No relevant documents found in knowledge base for this query. Answer based on general knowledge and be transparent about this.';
 
-    // 4. Build user context string
+    // 3. Build user context string
     const ctxParts: string[] = [];
     if (user_context?.treatment_stage) ctxParts.push(`Treatment stage: ${user_context.treatment_stage}`);
     if (user_context?.state) ctxParts.push(`State: ${user_context.state}`);
@@ -141,7 +116,7 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + contextStr;
 
-    // 5. Call Claude
+    // 4. Call Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
