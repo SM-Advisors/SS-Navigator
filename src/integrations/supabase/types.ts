@@ -581,6 +581,7 @@ export type Database = {
           metadata: Json | null
           program: string | null
           resource_type: string | null
+          search_vector: unknown
           source_url: string | null
           tags: string[] | null
           updated_at: string | null
@@ -598,6 +599,7 @@ export type Database = {
           metadata?: Json | null
           program?: string | null
           resource_type?: string | null
+          search_vector?: unknown
           source_url?: string | null
           tags?: string[] | null
           updated_at?: string | null
@@ -615,6 +617,7 @@ export type Database = {
           metadata?: Json | null
           program?: string | null
           resource_type?: string | null
+          search_vector?: unknown
           source_url?: string | null
           tags?: string[] | null
           updated_at?: string | null
@@ -1028,6 +1031,29 @@ export type Database = {
           match_count?: number
           query_embedding: string
           similarity_threshold?: number
+        }
+        Returns: {
+          applicable_states: string[]
+          category: string
+          chunk_index: number
+          content: string
+          document_id: string
+          document_title: string
+          id: string
+          metadata: Json
+          program: string
+          resource_type: string
+          similarity: number
+          source_url: string
+          tags: string[]
+        }[]
+      }
+      match_knowledge_base_fts: {
+        Args: {
+          filter_category?: string
+          filter_program?: string
+          match_count?: number
+          query_text: string
         }
         Returns: {
           applicable_states: string[]
