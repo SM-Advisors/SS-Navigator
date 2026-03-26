@@ -59,7 +59,6 @@ export default function AdminRagTest() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             message: prompt,
-            retrieval_threshold: parseFloat(threshold),
             retrieval_count: parseInt(retrievalCount),
           }),
         }

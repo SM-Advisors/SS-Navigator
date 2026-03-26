@@ -6,20 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BATCH_SIZE = 50; // embeddings per OpenAI call
-
-async function batchEmbed(texts: string[], apiKey: string): Promise<number[][]> {
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'text-embedding-3-small', input: texts }),
-  });
-  if (!res.ok) throw new Error(`Embedding error: ${await res.text()}`);
-  const data = await res.json();
-  return data.data
-    .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
-    .map((d: { embedding: number[] }) => d.embedding);
-}
+const BATCH_SIZE = 50;
 
 function buildContent(r: Record<string, unknown>): string {
   const parts: string[] = [];
@@ -48,14 +35,8 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY')!;
 
     const supabase = createClient(supabaseUrl, serviceKey);
-
-    // Check how many already exist
-    const { count: existingCount } = await supabase
-      .from('knowledge_base')
-      .select('id', { count: 'exact', head: true });
 
     // Fetch all active resources (paginate past 1000 limit)
     let allResources: Record<string, unknown>[] = [];
@@ -75,19 +56,6 @@ serve(async (req) => {
       offset += pageSize;
     }
 
-    // Build text content and document metadata for each resource
-    const items = allResources.map((r) => ({
-      document_id: `resource-${r.id}`,
-      document_title: r.title as string,
-      content: buildContent(r),
-      program: (r.organization_name as string) || null,
-      resource_type: (r.subcategory as string) || null,
-      category: r.category as string,
-      source_url: (r.organization_url as string) || null,
-      applicable_states: (r.applicable_states as string[]) || [],
-      tags: (r.tags as string[]) || [],
-    }));
-
     // Delete old resource-based KB entries
     await supabase
       .from('knowledge_base')
@@ -96,31 +64,21 @@ serve(async (req) => {
 
     let inserted = 0;
 
-    // Process in batches
-    for (let i = 0; i < items.length; i += BATCH_SIZE) {
-      const batch = items.slice(i, i + BATCH_SIZE);
-      const texts = batch.map((b) => b.content);
+    // Process in batches (no embeddings needed — FTS trigger handles search_vector)
+    for (let i = 0; i < allResources.length; i += BATCH_SIZE) {
+      const batch = allResources.slice(i, i + BATCH_SIZE);
 
-      let embeddings: number[][];
-      try {
-        embeddings = await batchEmbed(texts, openaiKey);
-      } catch (e) {
-        console.error(`Embedding batch ${i} failed:`, e);
-        continue;
-      }
-
-      const rows = batch.map((item, idx) => ({
-        document_id: item.document_id,
-        document_title: item.document_title,
-        content: item.content,
+      const rows = batch.map((r) => ({
+        document_id: `resource-${r.id}`,
+        document_title: r.title as string,
+        content: buildContent(r),
         chunk_index: 0,
-        program: item.program,
-        resource_type: item.resource_type,
-        category: item.category,
-        source_url: item.source_url,
-        applicable_states: item.applicable_states,
-        tags: item.tags,
-        embedding: `[${embeddings[idx].join(',')}]`,
+        program: (r.organization_name as string) || null,
+        resource_type: (r.subcategory as string) || null,
+        category: r.category as string,
+        source_url: (r.organization_url as string) || null,
+        applicable_states: (r.applicable_states as string[]) || [],
+        tags: (r.tags as string[]) || [],
       }));
 
       const { error: insertErr } = await supabase
@@ -138,7 +96,6 @@ serve(async (req) => {
       success: true,
       total_resources: allResources.length,
       chunks_created: inserted,
-      previous_kb_count: existingCount ?? 0,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
     console.error('populate-kb error:', error);

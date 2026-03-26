@@ -27,20 +27,6 @@ function chunkText(text: string): string[] {
   return chunks;
 }
 
-async function embedText(text: string, apiKey: string): Promise<number[]> {
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: 'text-embedding-3-small', input: text }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`OpenAI embeddings error: ${err}`);
-  }
-  const data = await res.json();
-  return data.data[0].embedding;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -54,12 +40,11 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY')!;
 
     // Use service role to bypass RLS for inserts
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify caller is admin/navigator
+    // Verify caller is authenticated
     const anonClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -87,27 +72,13 @@ serve(async (req) => {
     const chunks = chunkText(content);
     const inserted: number[] = [];
 
+    // Insert chunks — no embeddings needed, FTS trigger handles search_vector automatically
     for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      let embedding: number[] | null = null;
-      
-      // Retry up to 3 times for transient failures
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          embedding = await embedText(chunk, openaiKey);
-          break;
-        } catch (e) {
-          if (attempt === 2) throw e;
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-        }
-      }
-
       const { error: insertErr } = await supabase.from('knowledge_base').insert({
         document_id,
         document_title,
         chunk_index: i,
-        content: chunk,
-        embedding: `[${embedding!.join(',')}]`,
+        content: chunks[i],
         program: program ?? null,
         resource_type: resource_type ?? null,
         category: category ?? null,
