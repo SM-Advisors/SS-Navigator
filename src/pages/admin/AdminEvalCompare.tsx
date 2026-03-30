@@ -410,9 +410,14 @@ export default function AdminEvalCompare() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Metric Deltas (B vs A)</CardTitle>
-                  <Button variant="outline" size="sm" onClick={exportComparison} className="gap-1 text-xs">
-                    <Download className="h-3.5 w-3.5" />Export CSV
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={saveComparison} disabled={saving} className="gap-1 text-xs">
+                      <Save className="h-3.5 w-3.5" />{saving ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportComparison} className="gap-1 text-xs">
+                      <Download className="h-3.5 w-3.5" />Export CSV
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
