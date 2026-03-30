@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, X, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { Sparkles, X, Loader2, Minimize2, Maximize2, Plus, MessageSquare, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SherpaChatMessage from './SherpaChatMessage';
 import SherpaChatInput from './SherpaChatInput';
-import { useConversationMessages, useAISherpa } from '@/hooks/useAISherpa';
+import { useConversationHistory, useConversationMessages, useAISherpa } from '@/hooks/useAISherpa';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatRelativeTime } from '@/lib/utils';
 
 const QUICK_PROMPTS = [
   'What financial assistance is available?',
@@ -22,8 +23,10 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
   const { user } = useAuth();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { data: conversations, isLoading: loadingConversations } = useConversationHistory();
   const { data: messages, isLoading: loadingMessages } = useConversationMessages(conversationId);
   const { sendMessage } = useAISherpa(conversationId, setConversationId);
 
@@ -33,7 +36,18 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
 
   const handleSend = (message: string) => {
     if (!user) return;
+    setShowHistory(false);
     sendMessage.mutate(message);
+  };
+
+  const handleNewConversation = () => {
+    setConversationId(null);
+    setShowHistory(false);
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setConversationId(id);
+    setShowHistory(false);
   };
 
   if (!open) return null;
@@ -46,13 +60,31 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
       <div className={`fixed bottom-0 right-0 top-0 z-50 w-full ${panelWidth} flex flex-col bg-background border-l shadow-2xl transition-all duration-200`}>
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-card shrink-0">
-          <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
+          {showHistory ? (
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setShowHistory(false)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-ss-navy">Hope</p>
-            <p className="text-xs text-muted-foreground truncate">AI Navigator · Not a medical professional</p>
+            <p className="font-semibold text-sm text-ss-navy">{showHistory ? 'Conversations' : 'Hope'}</p>
+            {!showHistory && (
+              <p className="text-xs text-muted-foreground truncate">AI Navigator · Not a medical professional</p>
+            )}
           </div>
+          {!showHistory && (
+            <>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setShowHistory(true)} title="History">
+                <MessageSquare className="h-3.5 w-3.5" />
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleNewConversation} title="New conversation">
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden md:flex" onClick={() => setExpanded(!expanded)}>
             {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </Button>
@@ -61,60 +93,98 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
           </Button>
         </div>
 
-        {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
-          {loadingMessages ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : !messages?.length ? (
-            <div className="space-y-5">
-              <div className="text-center py-4">
-                <div className="inline-flex h-12 w-12 rounded-full bg-ss-teal/20 items-center justify-center mb-3">
-                  <Sparkles className="h-6 w-6 text-ss-teal" />
-                </div>
-                <h2 className="text-sm font-bold text-ss-navy mb-1">Hi, I'm Hope</h2>
-                <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
-                  I'm here to help you navigate resources and answer questions. How can I help?
-                </p>
+        {/* History view */}
+        {showHistory ? (
+          <ScrollArea className="flex-1 p-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mb-3 gap-2 text-xs"
+              onClick={handleNewConversation}
+            >
+              <Plus className="h-3.5 w-3.5" /> New conversation
+            </Button>
+            {loadingConversations ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
-              <div className="space-y-2">
-                {QUICK_PROMPTS.map(prompt => (
+            ) : !conversations?.length ? (
+              <p className="text-xs text-muted-foreground text-center py-8">No conversations yet</p>
+            ) : (
+              <div className="space-y-1">
+                {conversations.map(conv => (
                   <button
-                    key={prompt}
-                    onClick={() => handleSend(prompt)}
-                    className="w-full text-left text-xs bg-card border hover:border-ss-navy/30 hover:shadow-sm rounded-lg px-3 py-2.5 transition-all text-foreground"
+                    key={conv.id}
+                    onClick={() => handleSelectConversation(conv.id)}
+                    className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors text-xs hover:bg-accent/50 ${
+                      conv.id === conversationId ? 'bg-accent' : ''
+                    }`}
                   >
-                    {prompt}
+                    <p className="font-medium text-foreground truncate">{conv.title || 'Untitled'}</p>
+                    <p className="text-muted-foreground mt-0.5">{conv.updated_at ? formatRelativeTime(conv.updated_at) : ''}</p>
                   </button>
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {messages.map(message => (
-                <SherpaChatMessage
-                  key={message.id}
-                  message={message}
-                  onSuggestedPrompt={handleSend}
-                />
-              ))}
-              {sendMessage.isPending && (
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
-                    <Sparkles className="h-4 w-4 text-white" />
+            )}
+          </ScrollArea>
+        ) : (
+          <>
+            {/* Messages */}
+            <ScrollArea className="flex-1 p-4">
+              {loadingMessages ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : !messages?.length ? (
+                <div className="space-y-5">
+                  <div className="text-center py-4">
+                    <div className="inline-flex h-12 w-12 rounded-full bg-ss-teal/20 items-center justify-center mb-3">
+                      <Sparkles className="h-6 w-6 text-ss-teal" />
+                    </div>
+                    <h2 className="text-sm font-bold text-ss-navy mb-1">Hi, I'm Hope</h2>
+                    <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+                      I'm here to help you navigate resources and answer questions. How can I help?
+                    </p>
                   </div>
-                  <div className="bg-card border rounded-2xl rounded-tl-sm px-4 py-3">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <div className="space-y-2">
+                    {QUICK_PROMPTS.map(prompt => (
+                      <button
+                        key={prompt}
+                        onClick={() => handleSend(prompt)}
+                        className="w-full text-left text-xs bg-card border hover:border-ss-navy/30 hover:shadow-sm rounded-lg px-3 py-2.5 transition-all text-foreground"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map(message => (
+                    <SherpaChatMessage
+                      key={message.id}
+                      message={message}
+                      onSuggestedPrompt={handleSend}
+                    />
+                  ))}
+                  {sendMessage.isPending && (
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
+                        <Sparkles className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="bg-card border rounded-2xl rounded-tl-sm px-4 py-3">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
               )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </ScrollArea>
+            </ScrollArea>
 
-        <SherpaChatInput onSend={handleSend} disabled={sendMessage.isPending || !user} />
+            <SherpaChatInput onSend={handleSend} disabled={sendMessage.isPending || !user} />
+          </>
+        )}
       </div>
     </>
   );
