@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Resource, ResourceFilters } from '@/types/resources';
 import { RESOURCES_PER_PAGE } from '@/lib/constants';
@@ -6,6 +6,7 @@ import { RESOURCES_PER_PAGE } from '@/lib/constants';
 export function useResources(filters: ResourceFilters = {}, page = 1) {
   return useQuery({
     queryKey: ['resources', filters, page],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       let query = supabase
         .from('resources')

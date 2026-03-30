@@ -113,8 +113,11 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
+                disabled={page <= 1}
+                onClick={() => {
+                  setPage(p => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -124,8 +127,11 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === totalPages}
-                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setPage(p => Math.min(totalPages, p + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
