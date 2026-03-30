@@ -22,7 +22,13 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
         query = query.eq('category', filters.category as Exclude<typeof filters.category, 'all'>);
       }
       if (filters.state) {
-        query = query.or(`applicable_states.cs.{${filters.state}},applicable_states.eq.{}`);
+        if (filters.excludeNational) {
+          // Only state-specific resources
+          query = query.contains('applicable_states', [filters.state]);
+        } else {
+          // State-specific + national (empty array)
+          query = query.or(`applicable_states.cs.{${filters.state}},applicable_states.eq.{}`);
+        }
       }
 
       const { data, error, count } = await query;
