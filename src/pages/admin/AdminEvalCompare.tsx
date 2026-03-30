@@ -319,6 +319,25 @@ export default function AdminEvalCompare() {
           </p>
         </div>
 
+        {/* Saved comparisons */}
+        {savedComparisons && savedComparisons.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <History className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Saved:</span>
+            {savedComparisons.map((sc: { id: string; title: string; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; created_at: string }) => (
+              <Button
+                key={sc.id}
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 gap-1"
+                onClick={() => loadSavedComparison(sc)}
+              >
+                {sc.title} ({sc.regressions}↓ {sc.improvements}↑)
+              </Button>
+            ))}
+          </div>
+        )}
+
         {/* Run selectors */}
         <div className="grid grid-cols-2 gap-4">
           <div>
