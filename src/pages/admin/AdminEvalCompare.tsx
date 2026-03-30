@@ -190,9 +190,27 @@ function PromptCompareRow({ base, comp, isRegression, isImprovement, groundingCh
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function AdminEvalCompare() {
+  const { user } = useAuth();
   const { data: runs } = useEvalRuns();
+  const queryClient = useQueryClient();
   const [baseId, setBaseId] = useState<string | null>(null);
   const [compId, setCompId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Load saved comparisons
+  const { data: savedComparisons } = useQuery({
+    queryKey: ['eval-comparisons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('eval_comparisons')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []) as any[];
+    },
+  });
 
   const { data: baseResults } = useEvalResults(baseId);
   const { data: compResults } = useEvalResults(compId);
@@ -220,6 +238,37 @@ export default function AdminEvalCompare() {
   const groundingChanges = promptComparisons.filter(p => p.groundingChanged).length;
 
   const completedRuns = runs?.filter(r => r.status === 'completed') ?? [];
+
+  // Save comparison
+  const saveComparison = async () => {
+    if (!baseId || !compId || !baseRun || !compRun) return;
+    setSaving(true);
+    try {
+      const title = `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
+      const { error } = await supabase.from('eval_comparisons').insert({
+        base_run_id: baseId,
+        comp_run_id: compId,
+        title,
+        regressions,
+        improvements,
+        grounding_changes: groundingChanges,
+        created_by: user?.id ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      if (error) throw error;
+      toast.success('Comparison saved');
+      queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
+    } catch (e) {
+      toast.error('Failed to save', { description: (e as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadSavedComparison = (comp: { base_run_id: string; comp_run_id: string }) => {
+    setBaseId(comp.base_run_id);
+    setCompId(comp.comp_run_id);
+  };
 
   // Export comparison as CSV
   const exportComparison = () => {
@@ -250,7 +299,6 @@ export default function AdminEvalCompare() {
     a.click();
   };
 
-  // Filter controls
   const [filter, setFilter] = useState<'all' | 'regressions' | 'improvements' | 'grounding'>('all');
   const filteredComparisons = promptComparisons.filter(p => {
     if (filter === 'regressions') return p.isRegression;
