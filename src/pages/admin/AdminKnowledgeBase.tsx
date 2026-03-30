@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useKBDocuments, useKBChunks, useDeleteKBDocument, useIngestDocument } from '@/hooks/useKnowledgeBase';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
