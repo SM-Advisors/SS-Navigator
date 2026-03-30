@@ -433,6 +433,60 @@ export type Database = {
         }
         Relationships: []
       }
+      eval_comparisons: {
+        Row: {
+          base_run_id: string
+          comp_run_id: string
+          created_at: string
+          created_by: string | null
+          grounding_changes: number
+          id: string
+          improvements: number
+          notes: string | null
+          regressions: number
+          title: string
+        }
+        Insert: {
+          base_run_id: string
+          comp_run_id: string
+          created_at?: string
+          created_by?: string | null
+          grounding_changes?: number
+          id?: string
+          improvements?: number
+          notes?: string | null
+          regressions?: number
+          title?: string
+        }
+        Update: {
+          base_run_id?: string
+          comp_run_id?: string
+          created_at?: string
+          created_by?: string | null
+          grounding_changes?: number
+          id?: string
+          improvements?: number
+          notes?: string | null
+          regressions?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eval_comparisons_base_run_id_fkey"
+            columns: ["base_run_id"]
+            isOneToOne: false
+            referencedRelation: "eval_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eval_comparisons_comp_run_id_fkey"
+            columns: ["comp_run_id"]
+            isOneToOne: false
+            referencedRelation: "eval_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eval_results: {
         Row: {
           category: string
