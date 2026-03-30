@@ -41,6 +41,14 @@ export default function Profile() {
   const [priorityCategories, setPriorityCategories] = useState<string[]>(
     profile?.priority_categories ?? []
   );
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .rpc('has_any_role', { _user_id: user.id, _roles: ['admin', 'navigator'] })
+      .then(({ data }) => { if (data) setIsAdmin(true); });
+  }, [user]);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
     resolver: zodResolver(schema),
