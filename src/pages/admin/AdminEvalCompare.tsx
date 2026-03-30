@@ -7,8 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, Save, History } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 // ── Delta display ────────────────────────────────────────────────────────────
 
@@ -185,9 +189,27 @@ function PromptCompareRow({ base, comp, isRegression, isImprovement, groundingCh
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function AdminEvalCompare() {
+  const { user } = useAuth();
   const { data: runs } = useEvalRuns();
+  const queryClient = useQueryClient();
   const [baseId, setBaseId] = useState<string | null>(null);
   const [compId, setCompId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Load saved comparisons
+  const { data: savedComparisons } = useQuery({
+    queryKey: ['eval-comparisons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('eval_comparisons')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []) as any[];
+    },
+  });
 
   const { data: baseResults } = useEvalResults(baseId);
   const { data: compResults } = useEvalResults(compId);
@@ -215,6 +237,37 @@ export default function AdminEvalCompare() {
   const groundingChanges = promptComparisons.filter(p => p.groundingChanged).length;
 
   const completedRuns = runs?.filter(r => r.status === 'completed') ?? [];
+
+  // Save comparison
+  const saveComparison = async () => {
+    if (!baseId || !compId || !baseRun || !compRun) return;
+    setSaving(true);
+    try {
+      const title = `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
+      const { error } = await supabase.from('eval_comparisons').insert({
+        base_run_id: baseId,
+        comp_run_id: compId,
+        title,
+        regressions,
+        improvements,
+        grounding_changes: groundingChanges,
+        created_by: user?.id ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      if (error) throw error;
+      toast.success('Comparison saved');
+      queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
+    } catch (e) {
+      toast.error('Failed to save', { description: (e as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadSavedComparison = (comp: { base_run_id: string; comp_run_id: string }) => {
+    setBaseId(comp.base_run_id);
+    setCompId(comp.comp_run_id);
+  };
 
   // Export comparison as CSV
   const exportComparison = () => {
@@ -245,7 +298,6 @@ export default function AdminEvalCompare() {
     a.click();
   };
 
-  // Filter controls
   const [filter, setFilter] = useState<'all' | 'regressions' | 'improvements' | 'grounding'>('all');
   const filteredComparisons = promptComparisons.filter(p => {
     if (filter === 'regressions') return p.isRegression;
@@ -266,6 +318,25 @@ export default function AdminEvalCompare() {
             Compare two eval runs side by side. Click any prompt row to see full responses.
           </p>
         </div>
+
+        {/* Saved comparisons */}
+        {savedComparisons && savedComparisons.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <History className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Saved:</span>
+            {savedComparisons.map((sc: { id: string; title: string; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; created_at: string }) => (
+              <Button
+                key={sc.id}
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 gap-1"
+                onClick={() => loadSavedComparison(sc)}
+              >
+                {sc.title} ({sc.regressions}↓ {sc.improvements}↑)
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Run selectors */}
         <div className="grid grid-cols-2 gap-4">
@@ -339,9 +410,14 @@ export default function AdminEvalCompare() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Metric Deltas (B vs A)</CardTitle>
-                  <Button variant="outline" size="sm" onClick={exportComparison} className="gap-1 text-xs">
-                    <Download className="h-3.5 w-3.5" />Export CSV
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={saveComparison} disabled={saving} className="gap-1 text-xs">
+                      <Save className="h-3.5 w-3.5" />{saving ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportComparison} className="gap-1 text-xs">
+                      <Download className="h-3.5 w-3.5" />Export CSV
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
