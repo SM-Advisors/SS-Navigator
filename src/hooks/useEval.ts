@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { EvalSuite } from '@/data/eval-prompts';
 import { toast } from 'sonner';
+import { useRef, useCallback } from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -97,14 +98,43 @@ export function useEvalResults(runId: string | null) {
   });
 }
 
+// ── Stop a running eval ──────────────────────────────────────────────────────
+
+export function useStopEval() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId: string) => {
+      // Update the run status to failed so the loop checks it
+      await supabase.from('eval_runs').update({
+        status: 'failed' as const,
+        completed_at: new Date().toISOString(),
+      }).eq('id', runId);
+
+      qc.invalidateQueries({ queryKey: ['eval-runs'] });
+      return runId;
+    },
+    onSuccess: () => toast.info('Eval run stopped'),
+    onError: (e) => toast.error('Failed to stop run', { description: (e as Error).message }),
+  });
+}
+
 // ── Batch Eval Mutation ───────────────────────────────────────────────────────
 
 export function useRunEval() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const abortRef = useRef<AbortController | null>(null);
 
-  return useMutation({
+  const abort = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  const mutation = useMutation({
     mutationFn: async (config: EvalRunConfig) => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const {
         suite,
         model = 'claude-sonnet-4-5-20250929',
@@ -152,6 +182,11 @@ export function useRunEval() {
 
       // Process prompts sequentially (no hammering the API)
       for (const prompt of suite.prompts) {
+        // Check if aborted
+        if (controller.signal.aborted) {
+          break;
+        }
+
         let result: Partial<EvalResult> = {
           run_id: runId,
           prompt_id: prompt.id,
@@ -175,6 +210,7 @@ export function useRunEval() {
                 retrieval_count,
                 model,
               }),
+              signal: controller.signal,
             }
           );
 
@@ -206,6 +242,7 @@ export function useRunEval() {
           }
 
         } catch (e) {
+          if ((e as Error).name === 'AbortError') break;
           result = {
             ...result,
             status: 'error',
@@ -226,10 +263,11 @@ export function useRunEval() {
       const completed = successCount + errorCount;
       const avgLatency = successCount > 0 ? totalLatency / successCount : null;
       const avgLength = successCount > 0 ? totalLength / successCount : null;
+      const wasStopped = controller.signal.aborted;
 
       // Update run record with final metrics
       await supabase.from('eval_runs').update({
-        status: errorCount === completed ? 'failed' : 'completed',
+        status: wasStopped ? 'failed' : (errorCount === completed ? 'failed' : 'completed'),
         completed_at: new Date().toISOString(),
         success_count: successCount,
         error_count: errorCount,
@@ -244,6 +282,12 @@ export function useRunEval() {
       return runId;
     },
     onSuccess: () => toast.success('Eval run completed'),
-    onError: (e) => toast.error('Eval run failed', { description: (e as Error).message }),
+    onError: (e) => {
+      if ((e as Error).name !== 'AbortError') {
+        toast.error('Eval run failed', { description: (e as Error).message });
+      }
+    },
   });
+
+  return { ...mutation, abort };
 }
