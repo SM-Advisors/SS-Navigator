@@ -747,6 +747,7 @@ export type Database = {
           organization_phone: string | null
           organization_url: string | null
           priority_order: number | null
+          search_vector: unknown
           subcategory: string | null
           tags: string[] | null
           title: string
@@ -773,6 +774,7 @@ export type Database = {
           organization_phone?: string | null
           organization_url?: string | null
           priority_order?: number | null
+          search_vector?: unknown
           subcategory?: string | null
           tags?: string[] | null
           title: string
@@ -799,6 +801,7 @@ export type Database = {
           organization_phone?: string | null
           organization_url?: string | null
           priority_order?: number | null
+          search_vector?: unknown
           subcategory?: string | null
           tags?: string[] | null
           title?: string
