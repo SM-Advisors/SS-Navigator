@@ -6,51 +6,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const SYSTEM_PROMPT = `You are Hope, a compassionate and knowledgeable patient navigator for the Sebastian Strong Foundation's Hope Navigator Program.
+const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the Sebastian Strong Foundation.
 
-## YOUR IDENTITY
-- You are Hope, a caring guide for families navigating childhood cancer
-- You work for the Sebastian Strong Foundation, dedicated to helping families of children with cancer
-- You are NOT a doctor, nurse, or medical professional
-- You speak with warmth, compassion, and clarity — like a trusted friend who knows the system
-
-## CRITICAL RULES — NEVER VIOLATE THESE
-1. NEVER provide medical diagnoses, treatment recommendations, or interpret medical test results
-2. NEVER provide specific legal advice
-3. NEVER provide specific financial/investment advice
-4. ALWAYS recommend families discuss medical decisions with their oncology team
-5. If someone seems to be in crisis (suicidal ideation, harm to self or others), IMMEDIATELY provide crisis resources and set crisisDetected to true
-
-## CRISIS DETECTION
-If the user expresses suicidal thoughts, hopelessness, wanting to give up, or seems in acute distress, respond with immediate compassion AND include crisis resources. Set crisisDetected to true in your response.
-
-## TONE & APPROACH
-- Warm, compassionate, never clinical or cold
-- Plain language — no medical jargon unless explaining terms the user used
-- Short, actionable responses — usually 2-4 paragraphs maximum
-- Acknowledge the emotional weight before diving into information
+## IDENTITY
+- You help families navigating CHILDHOOD cancer (not adult cancer)
+- You are NOT a medical professional — always recommend discussing medical decisions with the oncology team
+- You speak with warmth, brevity, and practical expertise
+- Keep responses concise (2-4 paragraphs max) unless the user asks for detail
 - Use the child's name if provided in user context
 
-## WHAT YOU CAN HELP WITH
-- Finding and explaining resources for financial assistance, medical support, emotional care
-- Explaining hospital/treatment navigation
-- Practical day-to-day tips during treatment
-- School re-entry, IEPs, homebound education
-- Sibling support
-- Survivorship resources
-- Connecting families with navigator support
-- Explaining what questions to ask the medical team (without providing answers)
+## CRITICAL RULES
+1. NEVER provide medical diagnoses or treatment recommendations
+2. NEVER provide specific legal or financial investment advice
+3. If someone expresses suicidal thoughts or acute crisis, provide 988 Suicide & Crisis Lifeline and set crisisDetected to true
+4. Focus ONLY on childhood cancer support
+
+## GROUNDING — MANDATORY
+- ONLY use information from the RETRIEVED KNOWLEDGE BASE CONTEXT below
+- When citing a source, include it in your "referencedResources" array
+- NEVER fabricate program names, phone numbers, websites, or dollar amounts
+- If retrieved context does NOT answer the question, DO NOT guess or add information from general knowledge
+- When no relevant resources are found, say: "I don't have specific resources for that in my knowledge base right now. I'd recommend reaching out to our Navigator team at info@sebastianstrong.org or calling 833-726-2636 — they can help you find exactly what you need."
+
+## RESPONSE STYLE
+- Lead with the most actionable information
+- Use bullet points for lists of programs/resources
+- Include eligibility details and contact info when available from sources
+- End with a warm, supportive closing sentence
 
 ## RESPONSE FORMAT
-Always respond with valid JSON in this exact format:
-{
-  "reply": "Your compassionate response in markdown format",
-  "suggestedPrompts": ["Follow-up question 1?", "Follow-up question 2?", "Follow-up question 3?"],
-  "referencedResources": [],
-  "crisisDetected": false
-}
-
-The "referencedResources" array will be populated by the system — return it empty unless you are explicitly including resources from the context provided.`;
+Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
+{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -58,12 +44,10 @@ serve(async (req) => {
   }
 
   try {
-    // Auth
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -75,36 +59,44 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const userId = claimsData.claims.sub as string;
-
     const body = await req.json();
     const { message, conversation_id, user_context } = body;
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Resource retrieval via full-text search
+    // 1. Retrieve from knowledge base using improved FTS
+    let kbContext = '';
+    const { data: kbChunks } = await supabase.rpc('match_knowledge_base_fts', {
+      query_text: message,
+      match_count: 8,
+    });
+
+    if (kbChunks?.length) {
+      kbContext = `\n\n## RETRIEVED KNOWLEDGE BASE CONTEXT\n${kbChunks
+        .map((c: { document_title: string; program: string; category: string; content: string }, i: number) =>
+          `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (Program: ${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${c.content}`)
+        .join('\n\n---\n\n')}`;
+    } else {
+      kbContext = '\n\n## NOTE: No relevant documents found. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team.';
+    }
+
+    // 2. Also search resources table for direct matches to include as referenced resources
     const { data: resources } = await supabase
       .from('resources')
-      .select('id, title, description, organization_name, organization_url, category, applicable_states')
+      .select('id, title, organization_name, organization_url, category')
       .eq('is_active', true)
-      .textSearch('search_vector', message.split(' ').slice(0, 5).join(' | '), { type: 'websearch' })
+      .textSearch('search_vector', message, { type: 'websearch' })
       .limit(5);
 
-    // Get recent conversation history
+    if (resources?.length) {
+      kbContext += `\n\n## MATCHING RESOURCES (include relevant ones in referencedResources)\n${JSON.stringify(resources)}`;
+    }
+
+    // 3. Get conversation history
     let conversationHistory: Array<{ role: string; content: string }> = [];
     if (conversation_id) {
       const { data: messages } = await supabase
@@ -115,30 +107,22 @@ serve(async (req) => {
         .limit(10);
 
       if (messages) {
-        conversationHistory = messages.filter(m => m.role !== 'system');
+        conversationHistory = messages.filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant');
       }
     }
 
-    // Build user context injection
-    const contextParts: string[] = [];
-    if (user_context?.treatment_stage) contextParts.push(`Treatment stage: ${user_context.treatment_stage}`);
-    if (user_context?.state) contextParts.push(`State: ${user_context.state}`);
-    if (user_context?.diagnosis) contextParts.push(`Diagnosis: ${user_context.diagnosis}`);
-    if (user_context?.priority_categories?.length) {
-      contextParts.push(`Priority needs: ${user_context.priority_categories.join(', ')}`);
-    }
+    // 4. Build user context
+    const ctxParts: string[] = [];
+    if (user_context?.treatment_stage) ctxParts.push(`Treatment stage: ${user_context.treatment_stage}`);
+    if (user_context?.state) ctxParts.push(`State: ${user_context.state}`);
+    if (user_context?.diagnosis) ctxParts.push(`Diagnosis: ${user_context.diagnosis}`);
+    if (user_context?.child_first_name) ctxParts.push(`Child's name: ${user_context.child_first_name}`);
+    if (user_context?.additional_info) ctxParts.push(`Family context: ${user_context.additional_info}`);
+    const userCtxStr = ctxParts.length ? `\n\n## USER CONTEXT\n${ctxParts.join('\n')}` : '';
 
-    const userContextStr = contextParts.length
-      ? `\n\n## USER CONTEXT\n${contextParts.join('\n')}`
-      : '';
+    const fullSystem = SYSTEM_PROMPT + userCtxStr + kbContext;
 
-    const resourceContextStr = resources?.length
-      ? `\n\n## RELEVANT RESOURCES FROM DATABASE\nThe following resources may be relevant. Include the most applicable ones in your referencedResources array:\n${JSON.stringify(resources, null, 2)}`
-      : '';
-
-    const fullSystemPrompt = SYSTEM_PROMPT + userContextStr + resourceContextStr;
-
-    // Call Claude API
+    // 5. Call Claude
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -147,13 +131,13 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6-20260320',
         max_tokens: 1024,
-        system: fullSystemPrompt,
+        system: fullSystem,
         messages: [
-          ...conversationHistory.map(m => ({
+          ...conversationHistory.map((m: { role: string; content: string }) => ({
             role: m.role as 'user' | 'assistant',
-            content: m.content,
+            content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
           })),
           { role: 'user', content: message },
         ],
@@ -169,7 +153,7 @@ serve(async (req) => {
     const claudeData = await claudeResponse.json();
     const rawContent = claudeData.content?.[0]?.text ?? '';
 
-    // Parse JSON response
+    // 6. Parse JSON response
     let parsedResponse = {
       reply: 'I apologize, I had trouble processing your message. Please try again.',
       suggestedPrompts: [] as string[],
@@ -178,7 +162,9 @@ serve(async (req) => {
     };
 
     try {
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      let cleaned = rawContent.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResponse = { ...parsedResponse, ...JSON.parse(jsonMatch[0]) };
       } else {
@@ -188,23 +174,14 @@ serve(async (req) => {
       parsedResponse.reply = rawContent;
     }
 
-    // Audit log
-    await supabase.from('audit_log').insert({
-      user_id: userId,
-      action: 'ai_sherpa_message',
-      resource_type: 'ai_conversation',
-      resource_id: conversation_id,
-      metadata: { crisis_detected: parsedResponse.crisisDetected },
-    });
-
     return new Response(JSON.stringify(parsedResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Edge function error:', error);
+    console.error('ai-sherpa error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
