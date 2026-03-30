@@ -4,11 +4,16 @@ import { useEvalRuns, useEvalResults, EvalRun, EvalResult } from '@/hooks/useEva
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, Save, History } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 // ── Delta display ────────────────────────────────────────────────────────────
 
