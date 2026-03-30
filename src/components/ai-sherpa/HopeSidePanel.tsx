@@ -121,7 +121,7 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
                     }`}
                   >
                     <p className="font-medium text-foreground truncate">{conv.title || 'Untitled'}</p>
-                    <p className="text-muted-foreground mt-0.5">{formatRelativeTime(conv.updated_at)}</p>
+                    <p className="text-muted-foreground mt-0.5">{conv.updated_at ? formatRelativeTime(conv.updated_at) : ''}</p>
                   </button>
                 ))}
               </div>
