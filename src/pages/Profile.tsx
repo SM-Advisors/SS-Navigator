@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, RotateCcw, Save, Check } from 'lucide-react';
+import { User, RotateCcw, Save, Check, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,10 +37,18 @@ const schema = z.object({
 type ProfileFormData = z.infer<typeof schema>;
 
 export default function Profile() {
-  const { profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const [priorityCategories, setPriorityCategories] = useState<string[]>(
     profile?.priority_categories ?? []
   );
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .rpc('has_any_role', { _user_id: user.id, _roles: ['admin', 'navigator'] })
+      .then(({ data }) => { if (data) setIsAdmin(true); });
+  }, [user]);
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
     resolver: zodResolver(schema),
@@ -81,11 +91,25 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-ss-navy flex items-center gap-2">
           <User className="h-6 w-6" />
           My Profile
         </h1>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/admin/rag-test">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin Console
+              </Link>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={handleReplayTour}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Replay Tour
+          </Button>
+        </div>
         <Button variant="outline" size="sm" onClick={handleReplayTour}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Replay Tour
