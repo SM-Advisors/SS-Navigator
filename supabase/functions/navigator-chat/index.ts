@@ -49,6 +49,67 @@ Always respond with valid JSON:
   "crisisDetected": false
 }`;
 
+// ── Provider routing ─────────────────────────────────────────────────────────
+
+function isOpenAIModel(model: string): boolean {
+  return model.startsWith('gpt-') || model.startsWith('o1') || model.startsWith('o3');
+}
+
+async function callAnthropic(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  userMessage: string,
+): Promise<string> {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Anthropic error: ${await res.text()}`);
+  const data = await res.json();
+  return data.content?.[0]?.text ?? '';
+}
+
+async function callOpenAI(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  userMessage: string,
+): Promise<string> {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+    }),
+  });
+
+  if (!res.ok) throw new Error(`OpenAI error: ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? '';
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -65,6 +126,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
+    const openaiKey = Deno.env.get('OPENAI_API_KEY') ?? '';
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
@@ -116,28 +178,15 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + contextStr;
 
-    // 4. Call Claude
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        system: fullSystem,
-        messages: [{ role: 'user', content: message }],
-      }),
-    });
+    // 4. Call the appropriate provider
+    let rawContent: string;
 
-    if (!claudeRes.ok) {
-      throw new Error(`Claude error: ${await claudeRes.text()}`);
+    if (isOpenAIModel(model)) {
+      if (!openaiKey) throw new Error('OPENAI_API_KEY is not configured');
+      rawContent = await callOpenAI(openaiKey, model, fullSystem, message);
+    } else {
+      rawContent = await callAnthropic(anthropicKey, model, fullSystem, message);
     }
-
-    const claudeData = await claudeRes.json();
-    const rawContent = claudeData.content?.[0]?.text ?? '';
 
     let parsed = {
       reply: rawContent,
