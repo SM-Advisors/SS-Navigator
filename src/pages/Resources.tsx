@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -19,20 +22,61 @@ import { US_STATES } from '@/types/profile';
 import { RESOURCES_PER_PAGE } from '@/lib/constants';
 import { ResourceFilters } from '@/types/resources';
 
+// Simple zip-to-state lookup (first 2 digits of zip → state)
+const ZIP_PREFIX_TO_STATE: Record<string, string> = {
+  '00': 'PR', '01': 'MA', '02': 'MA', '03': 'NH', '04': 'ME', '05': 'VT',
+  '06': 'CT', '07': 'NJ', '08': 'NJ', '09': 'PR', '10': 'NY', '11': 'NY',
+  '12': 'NY', '13': 'NY', '14': 'NY', '15': 'PA', '16': 'PA', '17': 'PA',
+  '18': 'PA', '19': 'PA', '20': 'DC', '21': 'MD', '22': 'VA', '23': 'VA',
+  '24': 'VA', '25': 'WV', '26': 'WV', '27': 'NC', '28': 'NC', '29': 'SC',
+  '30': 'GA', '31': 'GA', '32': 'FL', '33': 'FL', '34': 'FL', '35': 'AL',
+  '36': 'AL', '37': 'TN', '38': 'TN', '39': 'MS', '40': 'KY', '41': 'KY',
+  '42': 'KY', '43': 'OH', '44': 'OH', '45': 'OH', '46': 'IN', '47': 'IN',
+  '48': 'MI', '49': 'MI', '50': 'IA', '51': 'IA', '52': 'IA', '53': 'WI',
+  '54': 'WI', '55': 'MN', '56': 'MN', '57': 'SD', '58': 'ND', '59': 'MT',
+  '60': 'IL', '61': 'IL', '62': 'IL', '63': 'MO', '64': 'MO', '65': 'MO',
+  '66': 'KS', '67': 'KS', '68': 'NE', '69': 'NE', '70': 'LA', '71': 'LA',
+  '72': 'AR', '73': 'OK', '74': 'OK', '75': 'TX', '76': 'TX', '77': 'TX',
+  '78': 'TX', '79': 'TX', '80': 'CO', '81': 'CO', '82': 'WY', '83': 'ID',
+  '84': 'UT', '85': 'AZ', '86': 'AZ', '87': 'NM', '88': 'NM', '89': 'NV',
+  '90': 'CA', '91': 'CA', '92': 'CA', '93': 'CA', '94': 'CA', '95': 'CA',
+  '96': 'HI', '97': 'OR', '98': 'WA', '99': 'WA',
+};
+
+function zipToState(zip: string): string | null {
+  const prefix = zip.trim().slice(0, 2);
+  return ZIP_PREFIX_TO_STATE[prefix] ?? null;
+}
+
 export default function Resources() {
   const { profile } = useAuth();
   const [filters, setFilters] = useState<ResourceFilters>({
     state: profile?.state || undefined,
   });
   const [page, setPage] = useState(1);
+  const [zipInput, setZipInput] = useState(profile?.zip_code || '');
 
   const { data, isLoading } = useResources(filters, page);
   const totalPages = Math.ceil((data?.total ?? 0) / RESOURCES_PER_PAGE);
 
-  const updateFilter = (key: keyof ResourceFilters, value: string | null | undefined) => {
-    setFilters(prev => ({ ...prev, [key]: value || undefined }));
+  const updateFilter = (key: keyof ResourceFilters, value: string | boolean | null | undefined) => {
+    setFilters(prev => ({ ...prev, [key]: value ?? undefined }));
     setPage(1);
   };
+
+  const handleZipChange = (zip: string) => {
+    setZipInput(zip);
+    if (zip.length >= 3) {
+      const state = zipToState(zip);
+      if (state) {
+        updateFilter('state', state);
+      }
+    } else if (zip === '') {
+      updateFilter('state', null);
+    }
+  };
+
+  const hasFilters = filters.search || filters.category || filters.state || filters.excludeNational;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -56,10 +100,26 @@ export default function Resources() {
           selected={filters.category ?? null}
           onChange={v => updateFilter('category', v)}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Zip code input */}
+          <div className="relative">
+            <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={zipInput}
+              onChange={e => handleZipChange(e.target.value.replace(/\D/g, '').slice(0, 5))}
+              placeholder="Zip code"
+              className="w-28 pl-8 text-sm"
+              maxLength={5}
+            />
+          </div>
+
+          {/* State selector */}
           <Select
             value={filters.state ?? 'all'}
-            onValueChange={v => updateFilter('state', v === 'all' ? null : v)}
+            onValueChange={v => {
+              updateFilter('state', v === 'all' ? null : v);
+              setZipInput('');
+            }}
           >
             <SelectTrigger className="w-48 text-sm">
               <SelectValue placeholder="Filter by state" />
@@ -71,12 +131,27 @@ export default function Resources() {
               ))}
             </SelectContent>
           </Select>
-          {(filters.search || filters.category || filters.state) && (
+
+          {/* Exclude national toggle */}
+          {filters.state && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="exclude-national"
+                checked={filters.excludeNational ?? false}
+                onCheckedChange={v => updateFilter('excludeNational', v === true ? true : undefined)}
+              />
+              <Label htmlFor="exclude-national" className="text-xs text-muted-foreground cursor-pointer">
+                Local only
+              </Label>
+            </div>
+          )}
+
+          {hasFilters && (
             <Button
               variant="ghost"
               size="sm"
               className="text-xs"
-              onClick={() => { setFilters({}); setPage(1); }}
+              onClick={() => { setFilters({}); setPage(1); setZipInput(''); }}
             >
               Clear filters
             </Button>
@@ -94,12 +169,14 @@ export default function Resources() {
           icon={BookOpen}
           title="No resources found"
           description="Try adjusting your search or filters."
-          action={{ label: 'Clear Filters', onClick: () => { setFilters({}); setPage(1); } }}
+          action={{ label: 'Clear Filters', onClick: () => { setFilters({}); setPage(1); setZipInput(''); } }}
         />
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
             Showing {data.resources.length} of {data.total} resources
+            {filters.state && !filters.excludeNational && ' (including national resources)'}
+            {filters.state && filters.excludeNational && ` (${filters.state} only)`}
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.resources.map(resource => (

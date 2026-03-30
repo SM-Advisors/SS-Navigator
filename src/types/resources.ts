@@ -13,4 +13,5 @@ export interface ResourceFilters {
   state?: string;
   stage?: string;
   search?: string;
+  excludeNational?: boolean;
 }
