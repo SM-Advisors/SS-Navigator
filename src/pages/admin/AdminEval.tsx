@@ -293,6 +293,20 @@ export default function AdminEval() {
                       </div>
                       <div className="flex items-center gap-2">
                         <RunStatusBadge status={selectedRun.status} />
+                        {selectedRun.status === 'running' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            onClick={() => {
+                              runEval.abort();
+                              stopEval.mutate(selectedRun.id);
+                            }}
+                            disabled={stopEval.isPending}
+                          >
+                            <Square className="h-3.5 w-3.5" />Stop
+                          </Button>
+                        )}
                         {selectedRun.status === 'completed' && (
                           <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1 text-xs">
                             <Download className="h-3.5 w-3.5" />CSV
