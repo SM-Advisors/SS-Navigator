@@ -91,11 +91,25 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-ss-navy flex items-center gap-2">
           <User className="h-6 w-6" />
           My Profile
         </h1>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/admin/rag-test">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin Console
+              </Link>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={handleReplayTour}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Replay Tour
+          </Button>
+        </div>
         <Button variant="outline" size="sm" onClick={handleReplayTour}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Replay Tour
