@@ -16,10 +16,10 @@ import { formatRelativeTime } from '@/lib/utils';
 
 
 const MODELS = [
-  'claude-sonnet-4-6-20260320',
-  'claude-sonnet-4-5-20250929',
+  'claude-sonnet-4-6-20260220',
   'gpt-5.4',
-  'gpt-5',
+  'claude-sonnet-4-5-20250929',
+  'gpt-5.2',
   'claude-3-5-sonnet-20241022',
 ];
 
