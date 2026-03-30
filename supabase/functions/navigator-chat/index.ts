@@ -137,7 +137,7 @@ serve(async (req) => {
       message,
       user_context,
       retrieval_count = 8,
-      model = 'claude-sonnet-4-5-20250929',
+      model = 'claude-sonnet-4-6-20260220',
     } = body;
 
     if (!message) {
