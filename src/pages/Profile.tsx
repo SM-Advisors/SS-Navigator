@@ -37,7 +37,7 @@ const schema = z.object({
 type ProfileFormData = z.infer<typeof schema>;
 
 export default function Profile() {
-  const { profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const [priorityCategories, setPriorityCategories] = useState<string[]>(
     profile?.priority_categories ?? []
   );
