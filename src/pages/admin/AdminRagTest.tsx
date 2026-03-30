@@ -152,24 +152,25 @@ export default function AdminRagTest() {
             {result && (
               <>
                 {/* Metrics bar */}
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Badge variant="outline" className="gap-1">
                     <Clock className="h-3 w-3" />{result.latency_ms}ms
                   </Badge>
                   <Badge variant={result.groundedInSources ? 'default' : 'secondary'} className="gap-1">
                     {result.groundedInSources ? <CheckCircle2 className="h-3 w-3" /> : <Zap className="h-3 w-3" />}
-                    {result.groundedInSources ? 'Grounded in KB' : 'General knowledge'}
+                    {result.groundedInSources ? 'Grounded' : 'Ungrounded'}
                   </Badge>
                   <Badge variant="outline" className="gap-1">
-                    {result.retrievedChunks.length} chunks retrieved
+                    {result.retrievedChunks.length} chunks
                   </Badge>
-                  {result.sources.length > 0 && (
-                    <Badge variant="outline" className="gap-1">
-                      {result.sources.length} sources cited
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="gap-1">
+                    {result.sources.length} cited
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    {result.reply.length} chars
+                  </Badge>
                   {result.crisisDetected && (
-                    <Badge variant="destructive">Crisis detected</Badge>
+                    <Badge variant="destructive">⚠ Crisis</Badge>
                   )}
                 </div>
 
