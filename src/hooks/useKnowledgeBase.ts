@@ -67,6 +67,22 @@ export function useKBDocuments() {
   });
 }
 
+export function useKBChunks(documentId: string | null) {
+  return useQuery({
+    queryKey: ['knowledge-base-chunks', documentId],
+    enabled: !!documentId,
+    queryFn: async (): Promise<KBChunk[]> => {
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .select('id, document_id, document_title, chunk_index, content, program, resource_type, category, source_url')
+        .eq('document_id', documentId!)
+        .order('chunk_index', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as KBChunk[];
+    },
+  });
+}
+
 export function useDeleteKBDocument() {
   const qc = useQueryClient();
   return useMutation({
