@@ -49,7 +49,7 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
           <div className="w-full space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Relevant resources:</p>
             {referencedResources.map(resource => (
-              <div key={resource.id} className="bg-white border rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+              <div key={resource.id} className="bg-card border rounded-lg px-3 py-2 flex items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-ss-navy leading-tight">{resource.title}</p>
                   <p className="text-xs text-muted-foreground">{resource.organization_name}</p>

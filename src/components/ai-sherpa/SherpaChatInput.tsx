@@ -28,7 +28,7 @@ export default function SherpaChatInput({ onSend, disabled }: SherpaChatInputPro
   };
 
   return (
-    <div className="flex gap-2 items-end p-4 border-t bg-white" data-tour="sherpa-input">
+    <div className="flex gap-2 items-end p-4 border-t bg-card" data-tour="sherpa-input">
       <Textarea
         ref={textareaRef}
         value={value}
