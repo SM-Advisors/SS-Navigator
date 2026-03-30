@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, X, Loader2, Minimize2, Maximize2, Plus, MessageSquare, ChevronLeft } from 'lucide-react';
+import { Sparkles, X, Loader2, Minimize2, Maximize2, Plus, MessageSquare, ChevronLeft, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SherpaChatMessage from './SherpaChatMessage';
 import SherpaChatInput from './SherpaChatInput';
+import EmailDraft from './EmailDraft';
 import { useConversationHistory, useConversationMessages, useAISherpa } from '@/hooks/useAISherpa';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatRelativeTime } from '@/lib/utils';
@@ -19,11 +20,13 @@ interface HopeSidePanelProps {
   onClose: () => void;
 }
 
+type PanelView = 'chat' | 'history' | 'email';
+
 export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
   const { user } = useAuth();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [view, setView] = useState<PanelView>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: conversations, isLoading: loadingConversations } = useConversationHistory();
@@ -36,18 +39,18 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
 
   const handleSend = (message: string) => {
     if (!user) return;
-    setShowHistory(false);
+    setView('chat');
     sendMessage.mutate(message);
   };
 
   const handleNewConversation = () => {
     setConversationId(null);
-    setShowHistory(false);
+    setView('chat');
   };
 
   const handleSelectConversation = (id: string) => {
     setConversationId(id);
-    setShowHistory(false);
+    setView('chat');
   };
 
   if (!open) return null;
@@ -60,41 +63,61 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
       <div className={`fixed bottom-0 right-0 top-0 z-50 w-full ${panelWidth} flex flex-col bg-background border-l shadow-2xl transition-all duration-200`}>
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-card shrink-0">
-          {showHistory ? (
-            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setShowHistory(false)}>
+          {view === 'history' ? (
+            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setView('chat')}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-          ) : (
+          ) : view === 'email' ? null : (
             <div className="h-8 w-8 rounded-full bg-ss-teal flex items-center justify-center shrink-0">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-ss-navy">{showHistory ? 'Conversations' : 'Hope'}</p>
-            {!showHistory && (
-              <p className="text-xs text-muted-foreground truncate">AI Navigator · Not a medical professional</p>
-            )}
-          </div>
-          {!showHistory && (
+          {view !== 'email' && (
             <>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setShowHistory(true)} title="History">
-                <MessageSquare className="h-3.5 w-3.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-ss-navy">
+                  {view === 'history' ? 'Conversations' : 'Hope'}
+                </p>
+                {view === 'chat' && (
+                  <p className="text-xs text-muted-foreground truncate">AI Navigator · Not a medical professional</p>
+                )}
+              </div>
+              {view === 'chat' && (
+                <>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setView('email')} title="Draft email">
+                    <Mail className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setView('history')} title="History">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleNewConversation} title="New conversation">
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden md:flex" onClick={() => setExpanded(!expanded)}>
+                {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </Button>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleNewConversation} title="New conversation">
-                <Plus className="h-3.5 w-3.5" />
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
+                <X className="h-4 w-4" />
               </Button>
             </>
           )}
-          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden md:flex" onClick={() => setExpanded(!expanded)}>
-            {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-          </Button>
-          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          {view === 'email' && (
+            <>
+              <div className="flex-1" />
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
 
-        {/* History view */}
-        {showHistory ? (
+        {/* Email draft view */}
+        {view === 'email' ? (
+          <EmailDraft onBack={() => setView('chat')} />
+        ) : view === 'history' ? (
+          /* History view */
           <ScrollArea className="flex-1 p-3">
             <Button
               variant="outline"
@@ -157,6 +180,13 @@ export default function HopeSidePanel({ open, onClose }: HopeSidePanelProps) {
                       </button>
                     ))}
                   </div>
+                  <button
+                    onClick={() => setView('email')}
+                    className="w-full text-left text-xs bg-card border hover:border-primary/30 hover:shadow-sm rounded-lg px-3 py-2.5 transition-all text-primary flex items-center gap-2"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Draft an email (insurance appeal, school letter, etc.)
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
