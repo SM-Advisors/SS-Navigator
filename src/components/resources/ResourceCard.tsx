@@ -1,4 +1,4 @@
-import { ExternalLink, Bookmark, BookmarkCheck, Phone, X } from 'lucide-react';
+import { ExternalLink, Bookmark, BookmarkCheck, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
