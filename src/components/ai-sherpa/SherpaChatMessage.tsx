@@ -30,7 +30,7 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isUser
               ? 'bg-ss-navy text-white rounded-tr-sm'
-              : 'bg-white border border-gray-100 shadow-sm rounded-tl-sm text-gray-800'
+              : 'bg-card border shadow-sm rounded-tl-sm text-foreground'
           }`}
         >
           {isUser ? (
