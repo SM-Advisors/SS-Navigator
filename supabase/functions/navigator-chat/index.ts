@@ -11,33 +11,41 @@ const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the S
 ## IDENTITY
 - You help families navigating CHILDHOOD cancer (not adult cancer)
 - You are NOT a medical professional — always recommend discussing medical decisions with the oncology team
-- You speak with warmth and practical expertise
+- You speak with warmth, brevity, and practical expertise
+- Keep responses concise (2-4 paragraphs max) unless the user asks for detail
 
 ## CRITICAL RULES
 1. NEVER provide medical diagnoses or treatment recommendations
 2. NEVER provide specific legal or financial investment advice
-3. If someone expresses suicidal thoughts or acute crisis, provide crisis resources and set crisisDetected to true
-4. Focus ONLY on childhood cancer
+3. If someone expresses suicidal thoughts or acute crisis, provide 988 Suicide & Crisis Lifeline and set crisisDetected to true
+4. Focus ONLY on childhood cancer support
 
-## GROUNDING — VERY IMPORTANT
-- You MUST prioritize information from the RETRIEVED KNOWLEDGE BASE CONTEXT below
-- When citing a retrieved source, include it in your "sources" array with its document_id and title
-- Set groundedInSources to true when your response uses retrieved context
+## GROUNDING — MANDATORY
+- ONLY use information from the RETRIEVED KNOWLEDGE BASE CONTEXT below
+- When citing a source, include it in your "sources" array with its document_id and title
+- Set groundedInSources to true ONLY when your response directly uses retrieved context
 - NEVER fabricate program names, phone numbers, websites, or dollar amounts
-- If no retrieved context is relevant, say so honestly and set groundedInSources to false
-- If no resources match the query, suggest the family contact the Sebastian Strong Foundation Navigator program directly at info@sebastianstrong.org
+- If retrieved context does NOT answer the question, DO NOT guess or add information from general knowledge
+- When no relevant resources are found, respond with: "I don't have specific resources for that in my knowledge base right now. I'd recommend reaching out to our Navigator team at info@sebastianstrong.org or calling 833-726-2636 — they can help you find exactly what you need." Set groundedInSources to false.
 
 ## WHAT YOU HELP WITH
-- Financial, emotional, and medical support program navigation and eligibility
+- Financial, emotional, and medical support program navigation
 - Insurance denials, appeals, prior authorizations
 - School re-entry, IEPs, homebound education
 - Sibling and caregiver support resources
 - Transportation, housing near treatment centers
-- Survivorship issues
+- Survivorship and bereavement support
+
+## RESPONSE STYLE
+- Lead with the most actionable information
+- Use bullet points for lists of programs/resources
+- Include eligibility details and contact info when available from sources
+- End with a warm, supportive closing sentence
+- Suggested prompts should be natural follow-ups based on the conversation
 
 ## RESPONSE FORMAT
-You MUST respond with ONLY valid JSON (no markdown code blocks, no extra text). Use this exact structure:
-{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "sources": [{"title": "doc title", "document_id": "id"}], "groundedInSources": true, "crisisDetected": false}`;
+Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
+{"reply": "Your response in markdown", "suggestedPrompts": ["Follow-up Q1?", "Follow-up Q2?", "Follow-up Q3?"], "sources": [{"title": "doc title", "document_id": "id"}], "groundedInSources": true, "crisisDetected": false}`;
 
 // ── Provider routing ─────────────────────────────────────────────────────────
 
@@ -45,11 +53,16 @@ function isOpenAIModel(model: string): boolean {
   return model.startsWith('gpt-') || model.startsWith('o1') || model.startsWith('o3');
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
 async function callAnthropic(
   apiKey: string,
   model: string,
   systemPrompt: string,
-  userMessage: string,
+  messages: ChatMessage[],
 ): Promise<string> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -62,7 +75,7 @@ async function callAnthropic(
       model,
       max_tokens: 1024,
       system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
     }),
   });
 
@@ -75,7 +88,7 @@ async function callOpenAI(
   apiKey: string,
   model: string,
   systemPrompt: string,
-  userMessage: string,
+  messages: ChatMessage[],
 ): Promise<string> {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -88,7 +101,7 @@ async function callOpenAI(
       max_completion_tokens: 1024,
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
+        ...messages,
       ],
     }),
   });
@@ -125,6 +138,7 @@ serve(async (req) => {
     const body = await req.json();
     const {
       message,
+      conversation_id,
       user_context,
       retrieval_count = 8,
       model = 'claude-sonnet-4-6-20260320',
@@ -136,7 +150,27 @@ serve(async (req) => {
       });
     }
 
-    // 1. Retrieve relevant chunks using full-text search (no embeddings needed)
+    // 1. Fetch conversation history (last 10 messages for context)
+    let historyMessages: ChatMessage[] = [];
+    if (conversation_id) {
+      const { data: history } = await supabase
+        .from('ai_messages')
+        .select('role, content')
+        .eq('conversation_id', conversation_id)
+        .order('created_at', { ascending: true })
+        .limit(10);
+
+      if (history) {
+        historyMessages = history
+          .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
+          .map((m: { role: string; content: string }) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
+          }));
+      }
+    }
+
+    // 2. Retrieve relevant chunks using full-text search
     let retrievedChunks: Array<{
       id: string; document_id: string; document_title: string;
       chunk_index: number; content: string; program: string | null;
@@ -150,14 +184,14 @@ serve(async (req) => {
     });
     if (chunks) retrievedChunks = chunks;
 
-    // 2. Build context string
+    // 3. Build context string
     const contextStr = retrievedChunks.length > 0
       ? `\n\n## RETRIEVED KNOWLEDGE BASE CONTEXT\nUse the following retrieved information to ground your response:\n\n${retrievedChunks
-          .map((c, i) => `[${i + 1}] Source: "${c.document_title}" (relevance: ${c.similarity?.toFixed(3)})\n${c.content}`)
+          .map((c, i) => `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (Program: ${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${c.content}`)
           .join('\n\n---\n\n')}`
-      : '\n\n## NOTE: No relevant documents found in knowledge base for this query. Answer based on general knowledge and be transparent about this.';
+      : '\n\n## NOTE: No relevant documents found in knowledge base. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team at info@sebastianstrong.org or 833-726-2636.';
 
-    // 3. Build user context string
+    // 4. Build user context string
     const ctxParts: string[] = [];
     if (user_context?.treatment_stage) ctxParts.push(`Treatment stage: ${user_context.treatment_stage}`);
     if (user_context?.state) ctxParts.push(`State: ${user_context.state}`);
@@ -168,14 +202,20 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + contextStr;
 
-    // 4. Call the appropriate provider
+    // 5. Build messages array with history + current message
+    const chatMessages: ChatMessage[] = [
+      ...historyMessages,
+      { role: 'user', content: message },
+    ];
+
+    // 6. Call the appropriate provider
     let rawContent: string;
 
     if (isOpenAIModel(model)) {
       if (!openaiKey) throw new Error('OPENAI_API_KEY is not configured');
-      rawContent = await callOpenAI(openaiKey, model, fullSystem, message);
+      rawContent = await callOpenAI(openaiKey, model, fullSystem, chatMessages);
     } else {
-      rawContent = await callAnthropic(anthropicKey, model, fullSystem, message);
+      rawContent = await callAnthropic(anthropicKey, model, fullSystem, chatMessages);
     }
 
     let parsed = {
@@ -187,7 +227,6 @@ serve(async (req) => {
     };
 
     try {
-      // Strip markdown code blocks if present (e.g. ```json ... ```)
       let cleaned = rawContent.trim();
       cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
