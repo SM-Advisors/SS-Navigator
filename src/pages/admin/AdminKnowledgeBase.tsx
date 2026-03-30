@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, ChevronDown, Tag } from 'lucide-react';
+import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { toast } from 'sonner';
 
