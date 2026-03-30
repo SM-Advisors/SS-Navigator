@@ -116,6 +116,7 @@ function ResultRow({ result }: { result: EvalResult }) {
 export default function AdminEval() {
   const { data: runs, isLoading: runsLoading } = useEvalRuns();
   const runEval = useRunEval();
+  const stopEval = useStopEval();
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const { data: results, isLoading: resultsLoading } = useEvalResults(selectedRunId);
   const [configOpen, setConfigOpen] = useState(false);
