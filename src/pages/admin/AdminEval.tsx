@@ -16,9 +16,11 @@ import { formatRelativeTime } from '@/lib/utils';
 
 
 const MODELS = [
+  'claude-sonnet-4-6-20260320',
   'claude-sonnet-4-5-20250929',
+  'gpt-5.4',
+  'gpt-5',
   'claude-3-5-sonnet-20241022',
-  'claude-3-haiku-20240307',
 ];
 
 function RunStatusBadge({ status }: { status: EvalRun['status'] }) {
