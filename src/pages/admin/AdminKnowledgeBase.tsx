@@ -27,7 +27,7 @@ function ChunkViewer({ documentId }: { documentId: string }) {
   return (
     <ScrollArea className="max-h-80">
       <div className="space-y-2 pr-3">
-        {chunks.map((chunk, i) => (
+        {chunks.map((chunk) => (
           <div key={chunk.id} className="border rounded-lg p-3 bg-muted/30">
             <div className="flex items-center gap-2 mb-1.5">
               <Badge variant="outline" className="text-xs font-mono">#{chunk.chunk_index}</Badge>
