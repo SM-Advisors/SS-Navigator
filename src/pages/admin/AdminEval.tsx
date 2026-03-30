@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { useEvalRuns, useEvalResults, useRunEval, EvalRun, EvalResult } from '@/hooks/useEval';
+import { useEvalRuns, useEvalResults, useRunEval, useStopEval, EvalRun, EvalResult } from '@/hooks/useEval';
 import { ALL_SUITES } from '@/data/eval-prompts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw } from 'lucide-react';
+import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw, Square } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 
 
@@ -116,6 +116,7 @@ function ResultRow({ result }: { result: EvalResult }) {
 export default function AdminEval() {
   const { data: runs, isLoading: runsLoading } = useEvalRuns();
   const runEval = useRunEval();
+  const stopEval = useStopEval();
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const { data: results, isLoading: resultsLoading } = useEvalResults(selectedRunId);
   const [configOpen, setConfigOpen] = useState(false);
@@ -292,6 +293,20 @@ export default function AdminEval() {
                       </div>
                       <div className="flex items-center gap-2">
                         <RunStatusBadge status={selectedRun.status} />
+                        {selectedRun.status === 'running' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            onClick={() => {
+                              runEval.abort();
+                              stopEval.mutate(selectedRun.id);
+                            }}
+                            disabled={stopEval.isPending}
+                          >
+                            <Square className="h-3.5 w-3.5" />Stop
+                          </Button>
+                        )}
                         {selectedRun.status === 'completed' && (
                           <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1 text-xs">
                             <Download className="h-3.5 w-3.5" />CSV

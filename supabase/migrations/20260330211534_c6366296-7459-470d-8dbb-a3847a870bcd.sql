@@ -1,0 +1,1 @@
+UPDATE eval_runs SET status = 'failed', completed_at = now() WHERE id = 'f8bf08cd-b42a-4c3f-ae2a-8f8b7bb7159d' AND status = 'running';
