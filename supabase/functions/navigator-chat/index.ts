@@ -187,7 +187,10 @@ serve(async (req) => {
     };
 
     try {
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      // Strip markdown code blocks if present (e.g. ```json ... ```)
+      let cleaned = rawContent.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       if (jsonMatch) parsed = { ...parsed, ...JSON.parse(jsonMatch[0]) };
     } catch { /* keep defaults */ }
 
