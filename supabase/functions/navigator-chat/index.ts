@@ -140,7 +140,7 @@ serve(async (req) => {
       message,
       conversation_id,
       user_context,
-      retrieval_count = 8,
+      retrieval_count = 5,
       model = 'claude-sonnet-4-6',
     } = body;
 
