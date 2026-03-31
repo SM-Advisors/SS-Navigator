@@ -309,10 +309,39 @@ export default function AdminEval() {
                             <Square className="h-3.5 w-3.5" />Stop
                           </Button>
                         )}
-                        {selectedRun.status === 'completed' && (
+                        {selectedRun.status !== 'running' && (
                           <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1 text-xs">
                             <Download className="h-3.5 w-3.5" />CSV
                           </Button>
+                        )}
+                        {selectedRun.status !== 'running' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" className="gap-1 text-xs">
+                                <Trash2 className="h-3.5 w-3.5" />Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this eval run?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete the run and all its results. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    deleteRun.mutate(selectedRun.id, {
+                                      onSuccess: () => setSelectedRunId(null),
+                                    });
+                                  }}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>
