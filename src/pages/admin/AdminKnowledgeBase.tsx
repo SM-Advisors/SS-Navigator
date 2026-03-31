@@ -256,6 +256,7 @@ export default function AdminKnowledgeBase() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
