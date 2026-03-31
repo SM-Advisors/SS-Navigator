@@ -206,87 +206,95 @@ export function useRunEval() {
       let totalLength = 0;
       const allSources = new Set<string>();
 
-      // Process prompts sequentially (no hammering the API)
-      for (const prompt of suite.prompts) {
-        // Check if aborted
-        if (controller.signal.aborted) {
-          break;
-        }
+      // Process prompts in parallel batches of 5
+      const CONCURRENCY = 5;
+      const prompts = [...suite.prompts];
 
-        let result: Partial<EvalResult> = {
-          run_id: runId,
-          prompt_id: prompt.id,
-          category: prompt.category,
-          prompt_text: prompt.prompt,
-          status: 'pending',
-        };
+      for (let i = 0; i < prompts.length; i += CONCURRENCY) {
+        if (controller.signal.aborted) break;
 
-        try {
-          const res = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/navigator-chat`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                message: prompt.prompt,
-                retrieval_threshold,
-                retrieval_count,
-                model,
-                include_debug: true,
-              }),
-              signal: controller.signal,
+        const batch = prompts.slice(i, i + CONCURRENCY);
+
+        await Promise.allSettled(
+          batch.map(async (prompt) => {
+            if (controller.signal.aborted) return null;
+
+            let result: Partial<EvalResult> = {
+              run_id: runId,
+              prompt_id: prompt.id,
+              category: prompt.category,
+              prompt_text: prompt.prompt,
+              status: 'pending',
+            };
+
+            try {
+              const res = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/navigator-chat`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    message: prompt.prompt,
+                    retrieval_threshold,
+                    retrieval_count,
+                    model,
+                    include_debug: true,
+                  }),
+                  signal: controller.signal,
+                }
+              );
+
+              if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error ?? `HTTP ${res.status}`);
+              }
+
+              const data = await res.json();
+
+              result = {
+                ...result,
+                status: 'success',
+                reply: data.reply ?? null,
+                sources: data.sources ?? [],
+                suggested_prompts: data.suggestedPrompts ?? [],
+                grounded_in_sources: data.groundedInSources ?? false,
+                retrieved_chunks: data.retrievedChunks ?? [],
+                full_system_prompt: data.fullSystemPrompt ?? null,
+                user_messages: data.userMessages ?? null,
+                latency_ms: data.latency_ms ?? null,
+                response_length: data.reply?.length ?? null,
+              };
+
+              successCount++;
+              if (data.groundedInSources) groundedCount++;
+              if (data.latency_ms) totalLatency += data.latency_ms;
+              if (data.reply) totalLength += data.reply.length;
+              if (data.sources) {
+                for (const s of data.sources) allSources.add(s.document_id ?? s.title);
+              }
+
+            } catch (e) {
+              if ((e as Error).name === 'AbortError') return null;
+              result = {
+                ...result,
+                status: 'error',
+                error_message: (e as Error).message,
+              };
+              errorCount++;
             }
-          );
 
-          if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.error ?? `HTTP ${res.status}`);
-          }
+            // Persist result
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await supabase.from('eval_results').insert(result as any);
+            return result;
+          })
+        );
 
-          const data = await res.json();
-
-          result = {
-            ...result,
-            status: 'success',
-            reply: data.reply ?? null,
-            sources: data.sources ?? [],
-            suggested_prompts: data.suggestedPrompts ?? [],
-            grounded_in_sources: data.groundedInSources ?? false,
-            retrieved_chunks: data.retrievedChunks ?? [],
-            full_system_prompt: data.fullSystemPrompt ?? null,
-            user_messages: data.userMessages ?? null,
-            latency_ms: data.latency_ms ?? null,
-            response_length: data.reply?.length ?? null,
-          };
-
-          successCount++;
-          if (data.groundedInSources) groundedCount++;
-          if (data.latency_ms) totalLatency += data.latency_ms;
-          if (data.reply) totalLength += data.reply.length;
-          if (data.sources) {
-            for (const s of data.sources) allSources.add(s.document_id ?? s.title);
-          }
-
-        } catch (e) {
-          if ((e as Error).name === 'AbortError') break;
-          result = {
-            ...result,
-            status: 'error',
-            error_message: (e as Error).message,
-          };
-          errorCount++;
-        }
-
-        // Persist result
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await supabase.from('eval_results').insert(result as any);
+        // Invalidate once per batch for UI updates
         qc.invalidateQueries({ queryKey: ['eval-results', runId] });
-
-        // Small delay to avoid rate limits
-        await new Promise(r => setTimeout(r, 500));
       }
 
       const completed = successCount + errorCount;
