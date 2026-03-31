@@ -162,7 +162,10 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
         suggested_prompts: sherpaResponse.suggestedPrompts ?? [],
         crisis_detected: sherpaResponse.crisisDetected ?? false,
         resource_ids: validResourceIds,
-        metadata: { referenced_resources: sherpaResponse.referencedResources ?? [] },
+        metadata: {
+          referenced_resources: sherpaResponse.referencedResources ?? [],
+          ...(sherpaResponse.draftEmail ? { draft_email: sherpaResponse.draftEmail } : {}),
+        },
       } as any);
 
       return { ...sherpaResponse, conversation_id: convId, crisis_detected_client: crisisDetected };

@@ -80,6 +80,20 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
           </div>
         )}
 
+        {/* Draft email card */}
+        {!isUser && draftEmail && (
+          <div className="w-full bg-card border rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold text-foreground">Email draft ready for Navigator team</p>
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-2">{draftEmail.subject}</p>
+            <Button size="sm" onClick={openDraftEmail} className="gap-1.5 text-xs">
+              <Send className="h-3.5 w-3.5" /> Review & Send Email
+            </Button>
+          </div>
+        )}
+
         {/* Suggested prompts */}
         {!isUser && message.suggested_prompts && message.suggested_prompts.length > 0 && (
           <div className="flex flex-wrap gap-1.5">

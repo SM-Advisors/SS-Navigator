@@ -220,7 +220,8 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify(parsedResponse), {
+    const responsePayload = { ...parsedResponse, ...(draftEmail ? { draftEmail } : {}) };
+    return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
