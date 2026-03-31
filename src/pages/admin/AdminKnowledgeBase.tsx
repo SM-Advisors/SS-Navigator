@@ -50,6 +50,7 @@ export default function AdminKnowledgeBase() {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({
     document_id: '',
     document_title: '',
@@ -62,6 +63,64 @@ export default function AdminKnowledgeBase() {
     replace_existing: true,
   });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const exportCSV = async () => {
+    setExporting(true);
+    try {
+      // Paginate to get all rows (Supabase default limit is 1000)
+      const allRows: Record<string, unknown>[] = [];
+      const PAGE = 1000;
+      let from = 0;
+      let done = false;
+      while (!done) {
+        const { data, error } = await supabase
+          .from('knowledge_base')
+          .select('document_id, document_title, chunk_index, content, program, resource_type, category, source_url, applicable_states, tags, created_at, updated_at')
+          .order('document_id')
+          .order('chunk_index')
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        allRows.push(...(data ?? []));
+        done = (data?.length ?? 0) < PAGE;
+        from += PAGE;
+      }
+
+      if (!allRows.length) {
+        toast.info('No data to export');
+        return;
+      }
+
+      const headers = [
+        'document_id', 'document_title', 'chunk_index', 'content',
+        'program', 'resource_type', 'category', 'source_url',
+        'applicable_states', 'tags', 'created_at', 'updated_at',
+      ];
+
+      const escapeCSV = (val: unknown) => {
+        const s = Array.isArray(val) ? val.join('; ') : String(val ?? '');
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+          ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+
+      const csv = [
+        headers.join(','),
+        ...allRows.map(row => headers.map(h => escapeCSV(row[h])).join(',')),
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `knowledge-base-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${allRows.length} rows`);
+    } catch (e) {
+      toast.error('Export failed', { description: (e as Error).message });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
