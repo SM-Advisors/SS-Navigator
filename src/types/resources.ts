@@ -14,4 +14,7 @@ export interface ResourceFilters {
   stage?: string;
   search?: string;
   excludeNational?: boolean;
+  radiusMiles?: number;
+  userLat?: number;
+  userLng?: number;
 }

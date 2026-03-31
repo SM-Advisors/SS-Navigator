@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { BookOpen, ChevronLeft, ChevronRight, MapPin, Radar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { US_STATES } from '@/types/profile';
 import { RESOURCES_PER_PAGE } from '@/lib/constants';
 import { ResourceFilters } from '@/types/resources';
+import { toast } from 'sonner';
 
 // Simple zip-to-state lookup (first 2 digits of zip → state)
 const ZIP_PREFIX_TO_STATE: Record<string, string> = {
@@ -43,9 +44,29 @@ const ZIP_PREFIX_TO_STATE: Record<string, string> = {
   '96': 'HI', '97': 'OR', '98': 'WA', '99': 'WA',
 };
 
+const RADIUS_OPTIONS = [
+  { value: '25', label: '25 miles' },
+  { value: '50', label: '50 miles' },
+  { value: '200', label: '200 miles' },
+  { value: '250', label: '250 miles' },
+];
+
 function zipToState(zip: string): string | null {
   const prefix = zip.trim().slice(0, 2);
   return ZIP_PREFIX_TO_STATE[prefix] ?? null;
+}
+
+async function geocodeZip(zip: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const place = data.places?.[0];
+    if (!place) return null;
+    return { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+  } catch {
+    return null;
+  }
 }
 
 export default function Resources() {
@@ -55,14 +76,46 @@ export default function Resources() {
   });
   const [page, setPage] = useState(1);
   const [zipInput, setZipInput] = useState(profile?.zip_code || '');
+  const [radiusValue, setRadiusValue] = useState<string>('none');
+  const [geocoding, setGeocoding] = useState(false);
 
   const { data, isLoading } = useResources(filters, page);
   const totalPages = Math.ceil((data?.total ?? 0) / RESOURCES_PER_PAGE);
 
-  const updateFilter = (key: keyof ResourceFilters, value: string | boolean | null | undefined) => {
+  const updateFilter = (key: keyof ResourceFilters, value: string | number | boolean | null | undefined) => {
     setFilters(prev => ({ ...prev, [key]: value ?? undefined }));
     setPage(1);
   };
+
+  const applyRadiusFilter = useCallback(async (zip: string, radius: string) => {
+    if (radius === 'none' || zip.length < 5) {
+      // Remove radius filter, keep state
+      setFilters(prev => {
+        const { radiusMiles, userLat, userLng, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    setGeocoding(true);
+    const coords = await geocodeZip(zip);
+    setGeocoding(false);
+
+    if (!coords) {
+      toast.error('Could not locate that zip code. Try a different one.');
+      return;
+    }
+
+    const state = zipToState(zip);
+    setFilters(prev => ({
+      ...prev,
+      radiusMiles: parseInt(radius),
+      userLat: coords.lat,
+      userLng: coords.lng,
+      state: state ?? prev.state,
+    }));
+    setPage(1);
+  }, []);
 
   const handleZipChange = (zip: string) => {
     setZipInput(zip);
@@ -74,9 +127,36 @@ export default function Resources() {
     } else if (zip === '') {
       updateFilter('state', null);
     }
+    // If radius is active and zip is complete, re-apply radius
+    if (zip.length === 5 && radiusValue !== 'none') {
+      applyRadiusFilter(zip, radiusValue);
+    }
   };
 
-  const hasFilters = filters.search || filters.category || filters.state || filters.excludeNational;
+  const handleRadiusChange = (value: string) => {
+    setRadiusValue(value);
+    if (value === 'none') {
+      setFilters(prev => {
+        const { radiusMiles, userLat, userLng, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+    if (zipInput.length === 5) {
+      applyRadiusFilter(zipInput, value);
+    } else {
+      toast.info('Enter a 5-digit zip code to use the distance filter.');
+    }
+  };
+
+  const hasFilters = filters.search || filters.category || filters.state || filters.excludeNational || filters.radiusMiles;
+
+  const clearAll = () => {
+    setFilters({});
+    setPage(1);
+    setZipInput('');
+    setRadiusValue('none');
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -113,12 +193,36 @@ export default function Resources() {
             />
           </div>
 
+          {/* Radius selector */}
+          <Select value={radiusValue} onValueChange={handleRadiusChange}>
+            <SelectTrigger className="w-36 text-sm">
+              <div className="flex items-center gap-1.5">
+                <Radar className="h-3.5 w-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Distance" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Any distance</SelectItem>
+              {RADIUS_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {/* State selector */}
           <Select
             value={filters.state ?? 'all'}
             onValueChange={v => {
               updateFilter('state', v === 'all' ? null : v);
               setZipInput('');
+              // Clear radius when manually selecting state
+              if (radiusValue !== 'none') {
+                setRadiusValue('none');
+                setFilters(prev => {
+                  const { radiusMiles, userLat, userLng, ...rest } = prev;
+                  return { ...rest, state: v === 'all' ? undefined : v };
+                });
+              }
             }}
           >
             <SelectTrigger className="w-48 text-sm">
@@ -133,7 +237,7 @@ export default function Resources() {
           </Select>
 
           {/* Exclude national toggle */}
-          {filters.state && (
+          {filters.state && !filters.radiusMiles && (
             <div className="flex items-center gap-2">
               <Checkbox
                 id="exclude-national"
@@ -151,12 +255,16 @@ export default function Resources() {
               variant="ghost"
               size="sm"
               className="text-xs"
-              onClick={() => { setFilters({}); setPage(1); setZipInput(''); }}
+              onClick={clearAll}
             >
               Clear filters
             </Button>
           )}
         </div>
+
+        {geocoding && (
+          <p className="text-xs text-muted-foreground animate-pulse">Locating zip code...</p>
+        )}
       </div>
 
       {/* Results */}
@@ -168,15 +276,19 @@ export default function Resources() {
         <EmptyState
           icon={BookOpen}
           title="No resources found"
-          description="Try adjusting your search or filters."
-          action={{ label: 'Clear Filters', onClick: () => { setFilters({}); setPage(1); setZipInput(''); } }}
+          description={filters.radiusMiles
+            ? `No resources found within ${filters.radiusMiles} miles. Try increasing the radius.`
+            : 'Try adjusting your search or filters.'
+          }
+          action={{ label: 'Clear Filters', onClick: clearAll }}
         />
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
             Showing {data.resources.length} of {data.total} resources
-            {filters.state && !filters.excludeNational && ' (including national resources)'}
-            {filters.state && filters.excludeNational && ` (${filters.state} only)`}
+            {filters.radiusMiles && ` within ${filters.radiusMiles} miles`}
+            {filters.state && !filters.radiusMiles && !filters.excludeNational && ' (including national resources)'}
+            {filters.state && !filters.radiusMiles && filters.excludeNational && ` (${filters.state} only)`}
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.resources.map(resource => (

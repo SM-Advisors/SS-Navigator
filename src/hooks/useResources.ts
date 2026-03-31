@@ -8,6 +8,46 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
     queryKey: ['resources', filters, page],
     placeholderData: keepPreviousData,
     queryFn: async () => {
+      // If radius filter is active with coordinates, use the distance function
+      if (filters.radiusMiles && filters.userLat && filters.userLng) {
+        // First get IDs within radius
+        const { data: nearby, error: rpcError } = await supabase.rpc(
+          'resources_within_radius' as any,
+          {
+            user_lat: filters.userLat,
+            user_lng: filters.userLng,
+            radius_miles: filters.radiusMiles,
+            fallback_state: filters.state ?? null,
+          }
+        );
+        if (rpcError) throw rpcError;
+
+        const nearbyIds = (nearby as any[] ?? []).map((r: any) => r.resource_id);
+        if (nearbyIds.length === 0) {
+          return { resources: [] as Resource[], total: 0 };
+        }
+
+        let query = supabase
+          .from('resources')
+          .select('*', { count: 'exact' })
+          .in('id', nearbyIds)
+          .eq('is_active', true)
+          .order('priority_order', { ascending: false })
+          .range((page - 1) * RESOURCES_PER_PAGE, page * RESOURCES_PER_PAGE - 1);
+
+        if (filters.search) {
+          query = query.textSearch('search_vector', filters.search, { type: 'websearch' });
+        }
+        if (filters.category && filters.category !== 'all') {
+          query = query.eq('category', filters.category as Exclude<typeof filters.category, 'all'>);
+        }
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+        return { resources: (data ?? []) as Resource[], total: count ?? 0 };
+      }
+
+      // Standard query (no radius)
       let query = supabase
         .from('resources')
         .select('*', { count: 'exact' })
@@ -23,10 +63,8 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
       }
       if (filters.state) {
         if (filters.excludeNational) {
-          // Only state-specific resources
           query = query.contains('applicable_states', [filters.state]);
         } else {
-          // State-specific + national (empty array)
           query = query.or(`applicable_states.cs.{${filters.state}},applicable_states.eq.{}`);
         }
       }

@@ -794,6 +794,7 @@ export type Database = {
           applicable_states: string[] | null
           application_url: string | null
           category: Database["public"]["Enums"]["resource_category"]
+          city: string | null
           created_at: string | null
           description: string
           id: string
@@ -801,7 +802,9 @@ export type Database = {
           is_crisis_resource: boolean | null
           is_featured: boolean | null
           last_verified_at: string | null
+          latitude: number | null
           long_description: string | null
+          longitude: number | null
           organization_email: string | null
           organization_name: string
           organization_phone: string | null
@@ -821,6 +824,7 @@ export type Database = {
           applicable_states?: string[] | null
           application_url?: string | null
           category: Database["public"]["Enums"]["resource_category"]
+          city?: string | null
           created_at?: string | null
           description: string
           id?: string
@@ -828,7 +832,9 @@ export type Database = {
           is_crisis_resource?: boolean | null
           is_featured?: boolean | null
           last_verified_at?: string | null
+          latitude?: number | null
           long_description?: string | null
+          longitude?: number | null
           organization_email?: string | null
           organization_name: string
           organization_phone?: string | null
@@ -848,6 +854,7 @@ export type Database = {
           applicable_states?: string[] | null
           application_url?: string | null
           category?: Database["public"]["Enums"]["resource_category"]
+          city?: string | null
           created_at?: string | null
           description?: string
           id?: string
@@ -855,7 +862,9 @@ export type Database = {
           is_crisis_resource?: boolean | null
           is_featured?: boolean | null
           last_verified_at?: string | null
+          latitude?: number | null
           long_description?: string | null
+          longitude?: number | null
           organization_email?: string | null
           organization_name?: string
           organization_phone?: string | null
@@ -1148,6 +1157,18 @@ export type Database = {
           similarity: number
           source: string
           text: string
+        }[]
+      }
+      resources_within_radius: {
+        Args: {
+          fallback_state?: string
+          radius_miles: number
+          user_lat: number
+          user_lng: number
+        }
+        Returns: {
+          distance_miles: number
+          resource_id: string
         }[]
       }
       validate_registration_code: {
