@@ -55,6 +55,8 @@ export interface EvalResult {
   retrieved_chunks: Array<{
     id: string; document_title: string; content: string; similarity: number;
   }>;
+  full_system_prompt: string | null;
+  user_messages: Array<{ role: string; content: string }> | null;
   error_message: string | null;
   latency_ms: number | null;
   response_length: number | null;
@@ -251,6 +253,8 @@ export function useRunEval() {
             suggested_prompts: data.suggestedPrompts ?? [],
             grounded_in_sources: data.groundedInSources ?? false,
             retrieved_chunks: data.retrievedChunks ?? [],
+            full_system_prompt: data.fullSystemPrompt ?? null,
+            user_messages: data.userMessages ?? null,
             latency_ms: data.latency_ms ?? null,
             response_length: data.reply?.length ?? null,
           };
