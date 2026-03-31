@@ -69,7 +69,7 @@ export default function EmailReviewDialog({ open, onOpenChange, draft }: EmailRe
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center gap-4 py-6 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-500" />
+            <CheckCircle2 className="h-12 w-12 text-primary" />
             <DialogTitle>Message Sent!</DialogTitle>
             <DialogDescription>
               Your message has been delivered to the Navigator team. They'll review it and reach out to you at <strong>{userEmail}</strong>.
