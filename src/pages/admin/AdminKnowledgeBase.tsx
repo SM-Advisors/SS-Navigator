@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag, Download, ChevronDown, ChevronRight, Copy, Globe, Clock } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
@@ -149,13 +148,11 @@ function ChunkViewer({ documentId }: { documentId: string }) {
         <Separator orientation="vertical" className="h-3" />
         <span>{totalChars.toLocaleString()} total chars</span>
       </div>
-      <ScrollArea className="max-h-[500px]">
-        <div className="space-y-2 pr-3">
-          {chunks.map((chunk) => (
-            <ChunkDetail key={chunk.id} chunk={chunk} />
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+        {chunks.map((chunk) => (
+          <ChunkDetail key={chunk.id} chunk={chunk} />
+        ))}
+      </div>
     </div>
   );
 }
