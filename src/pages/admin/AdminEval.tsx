@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw, Square, Trash2 } from 'lucide-react';
+import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw, Square, Trash2, Eye } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatRelativeTime } from '@/lib/utils';
 
