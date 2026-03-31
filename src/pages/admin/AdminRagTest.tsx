@@ -57,10 +57,11 @@ export default function AdminRagTest() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            message: prompt,
-            retrieval_count: parseInt(retrievalCount),
-          }),
+           body: JSON.stringify({
+             message: prompt,
+             retrieval_count: parseInt(retrievalCount),
+             include_debug: true,
+           }),
         }
       );
 
