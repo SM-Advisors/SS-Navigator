@@ -5,6 +5,26 @@ import { AIConversation, AIMessage, SherpaResponse } from '@/types/ai-sherpa';
 import { detectCrisis } from '@/lib/crisis-keywords';
 import { toast } from 'sonner';
 
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      // Delete messages first, then conversation
+      await supabase.from('ai_messages').delete().eq('conversation_id', conversationId);
+      const { error } = await supabase.from('ai_conversations').delete().eq('id', conversationId);
+      if (error) throw error;
+      return conversationId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
+      toast.success('Conversation deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete conversation');
+    },
+  });
+}
+
 export function useConversationHistory() {
   const { user } = useAuth();
   return useQuery({
@@ -129,7 +149,11 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
 
       const sherpaResponse: SherpaResponse = await response.json();
 
-      // Insert assistant message
+      // Insert assistant message — filter resource_ids to valid UUIDs only
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const validResourceIds = (sherpaResponse.referencedResources ?? [])
+        .map(r => r.id)
+        .filter(id => uuidRegex.test(id));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await supabase.from('ai_messages').insert({
         conversation_id: convId,
@@ -137,7 +161,7 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
         content: sherpaResponse.reply,
         suggested_prompts: sherpaResponse.suggestedPrompts ?? [],
         crisis_detected: sherpaResponse.crisisDetected ?? false,
-        resource_ids: sherpaResponse.referencedResources?.map(r => r.id) ?? [],
+        resource_ids: validResourceIds,
         metadata: { referenced_resources: sherpaResponse.referencedResources ?? [] },
       } as any);
 
