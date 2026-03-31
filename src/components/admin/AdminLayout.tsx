@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Link, useLocation } from 'react-router-dom';
-import { Database, FlaskConical, BarChart3, GitCompare, Shield } from 'lucide-react';
+import { Database, BarChart3, GitCompare, Shield } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
