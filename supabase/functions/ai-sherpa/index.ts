@@ -41,7 +41,9 @@ const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the S
 
 ## RESPONSE FORMAT
 Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
-{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false}`;
+{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false, "noMatchFound": false}
+
+Set "noMatchFound" to true whenever you direct the user to the Navigator team because your retrieved context does not adequately answer their question.`;
 
 // Maximum characters per retrieved chunk to keep prompt lean
 const MAX_CHUNK_CHARS = 800;
@@ -127,21 +129,19 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + kbContext;
 
-    // ── Build draft email if no KB matches ───────────────────────────────
-    const noResourcesFound = !kbChunks?.length;
-    let draftEmail: { to: string; subject: string; body: string } | undefined;
-    if (noResourcesFound) {
+    // ── Draft email helper (built after AI response if needed) ──────────
+    const buildDraftEmail = () => {
       const userName = user_context?.child_first_name
         ? `parent of ${user_context.child_first_name}`
         : 'a family';
       const diagnosisInfo = user_context?.diagnosis ? ` (diagnosis: ${user_context.diagnosis})` : '';
       const stateInfo = user_context?.state ? ` in ${user_context.state}` : '';
-      draftEmail = {
+      return {
         to: 'info@sebastianstrong.org',
         subject: `Navigator Support Request: ${message.slice(0, 80)}`,
         body: `Dear Navigator Team,\n\nI am ${userName}${stateInfo} navigating childhood cancer${diagnosisInfo}. I was unable to find resources through Hope regarding the following:\n\n"${message}"\n\nCould you please help me find relevant support or resources for this?\n\nThank you for your help.\n\nWarm regards`,
       };
-    }
+    };
 
     // ── Call Claude ──────────────────────────────────────────────────────
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -172,11 +172,18 @@ serve(async (req) => {
     const rawContent = claudeData.content?.[0]?.text ?? '';
 
     // ── Parse JSON response ──────────────────────────────────────────────
-    let parsedResponse = {
+    let parsedResponse: {
+      reply: string;
+      suggestedPrompts: string[];
+      referencedResources: Array<{ id: string; title: string; organization_name: string; organization_url?: string }>;
+      crisisDetected: boolean;
+      noMatchFound: boolean;
+    } = {
       reply: 'I apologize, I had trouble processing your message. Please try again.',
-      suggestedPrompts: [] as string[],
-      referencedResources: [] as Array<{ id: string; title: string; organization_name: string; organization_url?: string }>,
+      suggestedPrompts: [],
+      referencedResources: [],
       crisisDetected: false,
+      noMatchFound: false,
     };
 
     try {
@@ -220,7 +227,11 @@ serve(async (req) => {
       }
     }
 
-    const responsePayload = { ...parsedResponse, ...(draftEmail ? { draftEmail } : {}) };
+    // Include draft email if AI signaled no match or KB returned nothing
+    const shouldDraftEmail = !kbChunks?.length || parsedResponse.noMatchFound;
+    const draftEmail = shouldDraftEmail ? buildDraftEmail() : undefined;
+    const { noMatchFound: _omit, ...cleanResponse } = parsedResponse;
+    const responsePayload = { ...cleanResponse, ...(draftEmail ? { draftEmail } : {}) };
     return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
