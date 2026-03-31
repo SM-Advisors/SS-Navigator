@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, Plus, MessageSquare, Loader2 } from 'lucide-react';
+import { Sparkles, Plus, MessageSquare, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SherpaChatMessage from '@/components/ai-sherpa/SherpaChatMessage';
 import SherpaChatInput from '@/components/ai-sherpa/SherpaChatInput';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { useConversationHistory, useConversationMessages, useAISherpa } from '@/hooks/useAISherpa';
+import { useConversationHistory, useConversationMessages, useAISherpa, useDeleteConversation } from '@/hooks/useAISherpa';
 import { formatRelativeTime } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
