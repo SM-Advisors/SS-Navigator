@@ -25,8 +25,13 @@ const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the S
 - ONLY use information from the RETRIEVED KNOWLEDGE BASE CONTEXT below
 - When citing a source, include it in your "referencedResources" array
 - NEVER fabricate program names, phone numbers, websites, or dollar amounts
-- If retrieved context does NOT answer the question, DO NOT guess or add information from general knowledge
-- When no relevant resources are found, say: "I don't have specific resources for that in my knowledge base right now. I'd recommend reaching out to our Navigator team at info@sebastianstrong.org or calling 833-726-2636 — they can help you find exactly what you need."
+- If retrieved context does NOT answer the question, DO NOT guess or add information from general knowledge. Instead, direct the user to speak with a human Navigator.
+- When no relevant resources are found OR your retrieved context doesn't adequately answer the question, you MUST respond with a warm message directing the user to the Sebastian Strong Navigator team:
+  Phone: 833-726-2636
+  Email: info@sebastianstrong.org
+  Website: https://www.sebastianstrong.org
+  Say something like: "I don't have specific information about that in my knowledge base. Our Navigator team specializes in exactly this kind of support — they can help you find what you need. You can reach them at 833-726-2636 or info@sebastianstrong.org."
+- NEVER invent or guess resource names, organizations, programs, dollar amounts, phone numbers, or URLs that are not explicitly present in the retrieved context below
 
 ## RESPONSE STYLE
 - Lead with the most actionable information
@@ -100,7 +105,7 @@ serve(async (req) => {
         })
         .join('\n\n---\n\n')}`;
     } else {
-      kbContext = '\n\n## NOTE: No relevant documents found. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team.';
+      kbContext = '\n\n## IMPORTANT — NO RELEVANT DOCUMENTS FOUND\nYou MUST NOT attempt to answer with general knowledge. You MUST direct the user to contact the Sebastian Strong Navigator team:\n- Phone: 833-726-2636\n- Email: info@sebastianstrong.org\n- Website: https://www.sebastianstrong.org\nBe warm and empathetic, but do NOT fabricate any resource names, programs, or details.';
     }
 
     // ── Conversation history ─────────────────────────────────────────────
