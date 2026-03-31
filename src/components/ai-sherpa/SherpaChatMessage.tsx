@@ -1,11 +1,12 @@
 import ReactMarkdown from 'react-markdown';
-import { ExternalLink } from 'lucide-react';
-import { AIMessage } from '@/types/ai-sherpa';
+import { ExternalLink, Mail, Send } from 'lucide-react';
+import { AIMessage, DraftEmail } from '@/types/ai-sherpa';
 import { formatRelativeTime, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import SherpaCrisisDetection from './SherpaCrisisDetection';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface SherpaChatMessageProps {
   message: AIMessage;
@@ -15,7 +16,20 @@ interface SherpaChatMessageProps {
 export default function SherpaChatMessage({ message, onSuggestedPrompt }: SherpaChatMessageProps) {
   const { profile } = useAuth();
   const isUser = message.role === 'user';
-  const referencedResources = (message.metadata as Record<string, unknown>)?.referenced_resources as Array<{ id: string; title: string; organization_name: string; organization_url?: string }> | undefined;
+  const meta = message.metadata as Record<string, unknown> | null;
+  const referencedResources = meta?.referenced_resources as Array<{ id: string; title: string; organization_name: string; organization_url?: string }> | undefined;
+  const draftEmail = meta?.draft_email as DraftEmail | undefined;
+
+  const openDraftEmail = () => {
+    if (!draftEmail) return;
+    const displayName = profile?.display_name || '';
+    const bodyWithName = displayName
+      ? draftEmail.body.replace(/Warm regards$/, `Warm regards,\n${displayName}`)
+      : draftEmail.body;
+    const mailto = `mailto:${encodeURIComponent(draftEmail.to)}?subject=${encodeURIComponent(draftEmail.subject)}&body=${encodeURIComponent(bodyWithName)}`;
+    window.open(mailto, '_blank');
+    toast.success('Opening your email client...');
+  };
 
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -63,6 +77,20 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Draft email card */}
+        {!isUser && draftEmail && (
+          <div className="w-full bg-card border rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold text-foreground">Email draft ready for Navigator team</p>
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-2">{draftEmail.subject}</p>
+            <Button size="sm" onClick={openDraftEmail} className="gap-1.5 text-xs">
+              <Send className="h-3.5 w-3.5" /> Review & Send Email
+            </Button>
           </div>
         )}
 

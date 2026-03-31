@@ -24,11 +24,18 @@ export interface ReferencedResource {
   description: string;
 }
 
+export interface DraftEmail {
+  to: string;
+  subject: string;
+  body: string;
+}
+
 export interface SherpaResponse {
   reply: string;
   suggestedPrompts: string[];
   referencedResources: ReferencedResource[];
   crisisDetected: boolean;
+  draftEmail?: DraftEmail;
 }
 
 export interface ChatMessage {
