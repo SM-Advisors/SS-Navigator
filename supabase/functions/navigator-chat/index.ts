@@ -73,7 +73,7 @@ async function callAnthropic(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 768,
+      max_tokens: 512,
       system: systemPrompt,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
     }),
