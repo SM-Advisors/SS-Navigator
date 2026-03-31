@@ -83,16 +83,7 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
         optimisticMsg,
       ]);
 
-      // Insert user message
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await supabase.from('ai_messages').insert({
-        conversation_id: convId,
-        role: 'user',
-        content: message,
-        crisis_detected: crisisDetected,
-      } as any);
-
-      // Call edge function
+      // Insert user message + call edge function in PARALLEL
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
@@ -109,17 +100,27 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
         },
       };
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-sherpa`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const [, response] = await Promise.all([
+        // Fire-and-forget user message insert
+        supabase.from('ai_messages').insert({
+          conversation_id: convId,
+          role: 'user',
+          content: message,
+          crisis_detected: crisisDetected,
+        } as any),
+        // Call edge function simultaneously
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-sherpa`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+          }
+        ),
+      ]);
 
       if (!response.ok) {
         const errorText = await response.text();

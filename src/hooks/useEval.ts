@@ -235,6 +235,7 @@ export function useRunEval() {
                 retrieval_threshold,
                 retrieval_count,
                 model,
+                include_debug: true,
               }),
               signal: controller.signal,
             }
