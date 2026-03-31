@@ -67,6 +67,7 @@ function RunRow({ run, selected, onSelect }: { run: EvalRun; selected: boolean; 
 
 function ResultRow({ result }: { result: EvalResult }) {
   const [open, setOpen] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -106,6 +107,36 @@ function ResultRow({ result }: { result: EvalResult }) {
                 <span>{result.response_length} chars</span>
                 <span>{(result.retrieved_chunks as unknown[])?.length ?? 0} chunks retrieved</span>
               </div>
+              {result.full_system_prompt && (
+                <div className="mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={(e) => { e.stopPropagation(); setShowPrompt(v => !v); }}
+                  >
+                    <Eye className="h-3.5 w-3.5" />{showPrompt ? 'Hide' : 'View'} Full Prompt
+                  </Button>
+                  {showPrompt && (
+                    <div className="mt-2 space-y-2">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">System Prompt</p>
+                        <pre className="text-xs bg-muted/50 border rounded p-3 whitespace-pre-wrap max-h-64 overflow-y-auto font-mono leading-relaxed">
+                          {result.full_system_prompt}
+                        </pre>
+                      </div>
+                      {result.user_messages && result.user_messages.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">User Messages</p>
+                          <pre className="text-xs bg-muted/50 border rounded p-3 whitespace-pre-wrap max-h-32 overflow-y-auto font-mono leading-relaxed">
+                            {result.user_messages.map((m, i) => `[${m.role}]: ${m.content}`).join('\n\n')}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>

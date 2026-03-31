@@ -253,6 +253,8 @@ export function useRunEval() {
             suggested_prompts: data.suggestedPrompts ?? [],
             grounded_in_sources: data.groundedInSources ?? false,
             retrieved_chunks: data.retrievedChunks ?? [],
+            full_system_prompt: data.fullSystemPrompt ?? null,
+            user_messages: data.userMessages ?? null,
             latency_ms: data.latency_ms ?? null,
             response_length: data.reply?.length ?? null,
           };
