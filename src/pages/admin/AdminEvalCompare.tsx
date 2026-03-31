@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, Save, History } from 'lucide-react';
+import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, Save, History, Trash2, FileText } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { formatRelativeTime } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -195,7 +196,10 @@ export default function AdminEvalCompare() {
   const [baseId, setBaseId] = useState<string | null>(null);
   const [compId, setCompId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [saveTitle, setSaveTitle] = useState('');
+  const [saveNotes, setSaveNotes] = useState('');
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [showSavedList, setShowSavedList] = useState(false);
   // Load saved comparisons
   const { data: savedComparisons } = useQuery({
     queryKey: ['eval-comparisons'],
@@ -243,11 +247,12 @@ export default function AdminEvalCompare() {
     if (!baseId || !compId || !baseRun || !compRun) return;
     setSaving(true);
     try {
-      const title = `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
+      const title = saveTitle.trim() || `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
       const { error } = await supabase.from('eval_comparisons').insert({
         base_run_id: baseId,
         comp_run_id: compId,
         title,
+        notes: saveNotes.trim() || null,
         regressions,
         improvements,
         grounding_changes: groundingChanges,
@@ -256,11 +261,26 @@ export default function AdminEvalCompare() {
       } as any);
       if (error) throw error;
       toast.success('Comparison saved');
+      setSaveTitle('');
+      setSaveNotes('');
+      setShowSaveForm(false);
       queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
     } catch (e) {
       toast.error('Failed to save', { description: (e as Error).message });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const deleteComparison = async (id: string) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('eval_comparisons').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Comparison deleted');
+      queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
+    } catch (e) {
+      toast.error('Failed to delete', { description: (e as Error).message });
     }
   };
 
@@ -319,24 +339,48 @@ export default function AdminEvalCompare() {
           </p>
         </div>
 
-        {/* Saved comparisons */}
-        {savedComparisons && savedComparisons.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <History className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Saved:</span>
-            {savedComparisons.map((sc: { id: string; title: string; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; created_at: string }) => (
-              <Button
-                key={sc.id}
-                variant="outline"
-                size="sm"
-                className="text-xs h-7 gap-1"
-                onClick={() => loadSavedComparison(sc)}
-              >
-                {sc.title} ({sc.regressions}↓ {sc.improvements}↑)
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Saved comparisons panel */}
+        <Card>
+          <CardHeader className="pb-2 cursor-pointer" onClick={() => setShowSavedList(v => !v)}>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                Saved Comparisons ({savedComparisons?.length ?? 0})
+              </CardTitle>
+              {showSavedList ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </div>
+          </CardHeader>
+          {showSavedList && (
+            <CardContent>
+              {!savedComparisons || savedComparisons.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No saved comparisons yet. Run a comparison and click Save.</p>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {savedComparisons.map((sc: { id: string; title: string; notes: string | null; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; grounding_changes: number; created_at: string }) => (
+                    <div key={sc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/20 transition-colors">
+                      <button className="flex-1 text-left" onClick={() => loadSavedComparison(sc)}>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm font-medium">{sc.title}</span>
+                          <div className="flex gap-1.5 text-xs">
+                            {sc.regressions > 0 && <Badge variant="destructive" className="text-xs h-5">{sc.regressions}↓</Badge>}
+                            {sc.improvements > 0 && <Badge className="text-xs h-5 bg-green-100 text-green-700 border-green-200">{sc.improvements}↑</Badge>}
+                            {sc.grounding_changes > 0 && <Badge className="text-xs h-5 bg-amber-100 text-amber-700 border-amber-200">{sc.grounding_changes} Δ</Badge>}
+                          </div>
+                        </div>
+                        {sc.notes && <p className="text-xs text-muted-foreground mt-1 ml-6 line-clamp-1">{sc.notes}</p>}
+                        <p className="text-xs text-muted-foreground mt-0.5 ml-6">{formatRelativeTime(sc.created_at)}</p>
+                      </button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => deleteComparison(sc.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
 
         {/* Run selectors */}
         <div className="grid grid-cols-2 gap-4">
@@ -411,8 +455,8 @@ export default function AdminEvalCompare() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Metric Deltas (B vs A)</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={saveComparison} disabled={saving} className="gap-1 text-xs">
-                      <Save className="h-3.5 w-3.5" />{saving ? 'Saving...' : 'Save'}
+                    <Button variant="outline" size="sm" onClick={() => setShowSaveForm(v => !v)} className="gap-1 text-xs">
+                      <Save className="h-3.5 w-3.5" />Save
                     </Button>
                     <Button variant="outline" size="sm" onClick={exportComparison} className="gap-1 text-xs">
                       <Download className="h-3.5 w-3.5" />Export CSV
@@ -420,6 +464,33 @@ export default function AdminEvalCompare() {
                   </div>
                 </div>
               </CardHeader>
+              {showSaveForm && (
+                <CardContent className="border-b pb-4">
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground mb-1 block">Title (optional)</label>
+                      <Input
+                        value={saveTitle}
+                        onChange={e => setSaveTitle(e.target.value)}
+                        placeholder={`${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground mb-1 block">Notes (optional)</label>
+                      <Input
+                        value={saveNotes}
+                        onChange={e => setSaveNotes(e.target.value)}
+                        placeholder="What changed and why..."
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button size="sm" onClick={saveComparison} disabled={saving} className="gap-1 text-xs h-8">
+                      <Save className="h-3.5 w-3.5" />{saving ? 'Saving...' : 'Save Comparison'}
+                    </Button>
+                  </div>
+                </CardContent>
+              )}
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
                   {[
