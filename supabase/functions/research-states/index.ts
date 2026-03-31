@@ -84,7 +84,7 @@ Make sure EVERY state in ${JSON.stringify(currentBatch)} has at least 2 resource
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 8000,
         messages: [
           { role: "user", content: prompt },

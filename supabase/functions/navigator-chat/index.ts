@@ -141,7 +141,7 @@ serve(async (req) => {
       conversation_id,
       user_context,
       retrieval_count = 8,
-      model = 'claude-sonnet-4-6-20260320',
+      model = 'claude-sonnet-4-6',
     } = body;
 
     if (!message) {
