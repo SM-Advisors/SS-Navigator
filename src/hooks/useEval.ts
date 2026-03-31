@@ -95,6 +95,8 @@ export function useEvalResults(runId: string | null) {
         ...r,
         sources: (r.sources as unknown as EvalResult['sources']) ?? [],
         retrieved_chunks: (r.retrieved_chunks as unknown as EvalResult['retrieved_chunks']) ?? [],
+        full_system_prompt: (r as Record<string, unknown>).full_system_prompt as string | null ?? null,
+        user_messages: (r as Record<string, unknown>).user_messages as EvalResult['user_messages'] ?? null,
       })) as EvalResult[];
     },
   });
