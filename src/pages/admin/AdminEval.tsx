@@ -129,7 +129,7 @@ function ResultRow({ result }: { result: EvalResult }) {
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground mb-1">User Messages</p>
                           <pre className="text-xs bg-muted/50 border rounded p-3 whitespace-pre-wrap max-h-32 overflow-y-auto font-mono leading-relaxed">
-                            {result.user_messages.map((m, i) => `[${m.role}]: ${m.content}`).join('\n\n')}
+                            {result.user_messages.map((m) => `[${m.role}]: ${m.content}`).join('\n\n')}
                           </pre>
                         </div>
                       )}
