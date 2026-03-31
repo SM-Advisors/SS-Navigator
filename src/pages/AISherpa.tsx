@@ -72,26 +72,26 @@ export default function AISherpa() {
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
             {conversations?.map(conv => (
-              <div key={conv.id} className="group relative">
+              <div key={conv.id} className="flex items-center gap-1">
                 <button
                   onClick={() => {
                     setConversationId(conv.id);
                     if (isMobile) setShowSidebar(false);
                   }}
-                  className={`w-full text-left px-3 py-2 pr-8 rounded-lg text-sm transition-colors ${
+                  className={`flex-1 min-w-0 text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     conversationId === conv.id
                       ? 'bg-ss-navy text-white'
                       : 'hover:bg-muted text-foreground'
                   }`}
                 >
-                  <p className="font-medium truncate text-xs">{conv.title || 'New conversation'}</p>
+                  <p className="font-medium text-xs overflow-hidden text-ellipsis whitespace-nowrap">{conv.title || 'New conversation'}</p>
                   <p className={`text-xs mt-0.5 ${conversationId === conv.id ? 'text-white/60' : 'text-muted-foreground'}`}>
                     {formatRelativeTime(conv.updated_at ?? conv.created_at ?? new Date().toISOString())}
                   </p>
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(conv.id); }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                  onClick={() => handleDelete(conv.id)}
+                  className="shrink-0 p-1.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
                   title="Delete conversation"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
