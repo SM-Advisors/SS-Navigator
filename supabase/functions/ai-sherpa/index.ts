@@ -127,6 +127,22 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + kbContext;
 
+    // ── Build draft email if no KB matches ───────────────────────────────
+    const noResourcesFound = !kbChunks?.length;
+    let draftEmail: { to: string; subject: string; body: string } | undefined;
+    if (noResourcesFound) {
+      const userName = user_context?.child_first_name
+        ? `parent of ${user_context.child_first_name}`
+        : 'a family';
+      const diagnosisInfo = user_context?.diagnosis ? ` (diagnosis: ${user_context.diagnosis})` : '';
+      const stateInfo = user_context?.state ? ` in ${user_context.state}` : '';
+      draftEmail = {
+        to: 'info@sebastianstrong.org',
+        subject: `Navigator Support Request: ${message.slice(0, 80)}`,
+        body: `Dear Navigator Team,\n\nI am ${userName}${stateInfo} navigating childhood cancer${diagnosisInfo}. I was unable to find resources through Hope regarding the following:\n\n"${message}"\n\nCould you please help me find relevant support or resources for this?\n\nThank you for your help.\n\nWarm regards`,
+      };
+    }
+
     // ── Call Claude ──────────────────────────────────────────────────────
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
