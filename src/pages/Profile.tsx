@@ -110,10 +110,6 @@ export default function Profile() {
             Replay Tour
           </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleReplayTour}>
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Replay Tour
-        </Button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
