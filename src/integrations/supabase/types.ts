@@ -492,6 +492,7 @@ export type Database = {
           category: string
           created_at: string | null
           error_message: string | null
+          full_system_prompt: string | null
           grounded_in_sources: boolean | null
           id: string
           latency_ms: number | null
@@ -504,11 +505,13 @@ export type Database = {
           sources: Json | null
           status: string
           suggested_prompts: string[] | null
+          user_messages: Json | null
         }
         Insert: {
           category: string
           created_at?: string | null
           error_message?: string | null
+          full_system_prompt?: string | null
           grounded_in_sources?: boolean | null
           id?: string
           latency_ms?: number | null
@@ -521,11 +524,13 @@ export type Database = {
           sources?: Json | null
           status?: string
           suggested_prompts?: string[] | null
+          user_messages?: Json | null
         }
         Update: {
           category?: string
           created_at?: string | null
           error_message?: string | null
+          full_system_prompt?: string | null
           grounded_in_sources?: boolean | null
           id?: string
           latency_ms?: number | null
@@ -538,6 +543,7 @@ export type Database = {
           sources?: Json | null
           status?: string
           suggested_prompts?: string[] | null
+          user_messages?: Json | null
         }
         Relationships: [
           {
