@@ -24,7 +24,6 @@ import NotFound from '@/pages/NotFound';
 
 // Admin pages
 import AdminKnowledgeBase from '@/pages/admin/AdminKnowledgeBase';
-import AdminRagTest from '@/pages/admin/AdminRagTest';
 import AdminEval from '@/pages/admin/AdminEval';
 import AdminEvalCompare from '@/pages/admin/AdminEvalCompare';
 
