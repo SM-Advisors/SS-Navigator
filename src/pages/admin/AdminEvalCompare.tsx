@@ -9,7 +9,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { GitCompare, TrendingUp, TrendingDown, Minus, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, Save, History, Trash2, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { formatRelativeTime } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
