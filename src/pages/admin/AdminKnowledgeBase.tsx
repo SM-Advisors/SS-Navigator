@@ -181,10 +181,15 @@ export default function AdminKnowledgeBase() {
               {documents?.length ?? 0} documents · {totalChunks} chunks · FTS indexed
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Upload className="h-4 w-4" />Ingest Document</Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={exportCSV} disabled={exporting}>
+              {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Export CSV
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2"><Upload className="h-4 w-4" />Ingest Document</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Ingest New Document</DialogTitle>
