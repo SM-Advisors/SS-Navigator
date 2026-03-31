@@ -14,6 +14,7 @@ interface SherpaChatMessageProps {
   onSuggestedPrompt?: (prompt: string) => void;
 }
 
+export default function SherpaChatMessage({ message, onSuggestedPrompt }: SherpaChatMessageProps) {
   const { profile } = useAuth();
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const isUser = message.role === 'user';
