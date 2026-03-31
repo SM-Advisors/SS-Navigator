@@ -132,7 +132,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 512,
+        max_tokens: 1500,
         system: fullSystem,
         messages: [
           ...conversationHistory,
@@ -160,15 +160,43 @@ serve(async (req) => {
 
     try {
       let cleaned = rawContent.trim();
+      // Strip markdown code fences
       cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResponse = { ...parsedResponse, ...JSON.parse(jsonMatch[0]) };
+      // Fix trailing commas and control chars
+      cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']').replace(/[\x00-\x1F\x7F]/g, ' ');
+      
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        const jsonStr = cleaned.substring(jsonStart, jsonEnd + 1);
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.reply) {
+          parsedResponse = { ...parsedResponse, ...parsed };
+        } else {
+          // JSON parsed but no reply field — use raw as plain text
+          parsedResponse.reply = rawContent.replace(/[{}"[\]]/g, '').trim() || rawContent;
+        }
       } else {
+        // No JSON found — treat as plain text reply
         parsedResponse.reply = rawContent;
       }
     } catch {
-      parsedResponse.reply = rawContent;
+      // JSON parse failed — extract reply field with regex as fallback
+      const replyMatch = rawContent.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (replyMatch) {
+        parsedResponse.reply = replyMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      } else {
+        // Last resort: strip JSON artifacts and show as plain text
+        parsedResponse.reply = rawContent
+          .replace(/```(?:json)?/gi, '')
+          .replace(/```/g, '')
+          .replace(/^\s*\{[\s\S]*?"reply"\s*:\s*"/i, '')
+          .replace(/"\s*,?\s*"suggestedPrompts[\s\S]*$/i, '')
+          .replace(/\\n/g, '\n')
+          .replace(/\\"/g, '"')
+          .trim() || 'I had trouble processing that. Please try again.';
+      }
     }
 
     return new Response(JSON.stringify(parsedResponse), {
