@@ -44,7 +44,7 @@ export default function EmailReviewDialog({ open, onOpenChange, draft }: EmailRe
 
       setSent(true);
       toast.success('Message sent to the Navigator team!', {
-        description: 'They'll review your request and reach out to you.',
+        description: "They'll review your request and reach out to you.",
       });
     } catch (err) {
       console.error('Failed to send:', err);
