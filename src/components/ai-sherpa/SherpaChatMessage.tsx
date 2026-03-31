@@ -16,7 +16,20 @@ interface SherpaChatMessageProps {
 export default function SherpaChatMessage({ message, onSuggestedPrompt }: SherpaChatMessageProps) {
   const { profile } = useAuth();
   const isUser = message.role === 'user';
-  const referencedResources = (message.metadata as Record<string, unknown>)?.referenced_resources as Array<{ id: string; title: string; organization_name: string; organization_url?: string }> | undefined;
+  const meta = message.metadata as Record<string, unknown> | null;
+  const referencedResources = meta?.referenced_resources as Array<{ id: string; title: string; organization_name: string; organization_url?: string }> | undefined;
+  const draftEmail = meta?.draft_email as DraftEmail | undefined;
+
+  const openDraftEmail = () => {
+    if (!draftEmail) return;
+    const displayName = profile?.display_name || '';
+    const bodyWithName = displayName
+      ? draftEmail.body.replace(/Warm regards$/, `Warm regards,\n${displayName}`)
+      : draftEmail.body;
+    const mailto = `mailto:${encodeURIComponent(draftEmail.to)}?subject=${encodeURIComponent(draftEmail.subject)}&body=${encodeURIComponent(bodyWithName)}`;
+    window.open(mailto, '_blank');
+    toast.success('Opening your email client...');
+  };
 
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
