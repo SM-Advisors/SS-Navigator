@@ -340,24 +340,48 @@ export default function AdminEvalCompare() {
           </p>
         </div>
 
-        {/* Saved comparisons */}
-        {savedComparisons && savedComparisons.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <History className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Saved:</span>
-            {savedComparisons.map((sc: { id: string; title: string; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; created_at: string }) => (
-              <Button
-                key={sc.id}
-                variant="outline"
-                size="sm"
-                className="text-xs h-7 gap-1"
-                onClick={() => loadSavedComparison(sc)}
-              >
-                {sc.title} ({sc.regressions}↓ {sc.improvements}↑)
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Saved comparisons panel */}
+        <Card>
+          <CardHeader className="pb-2 cursor-pointer" onClick={() => setShowSavedList(v => !v)}>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                Saved Comparisons ({savedComparisons?.length ?? 0})
+              </CardTitle>
+              {showSavedList ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </div>
+          </CardHeader>
+          {showSavedList && (
+            <CardContent>
+              {!savedComparisons || savedComparisons.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No saved comparisons yet. Run a comparison and click Save.</p>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {savedComparisons.map((sc: { id: string; title: string; notes: string | null; base_run_id: string; comp_run_id: string; regressions: number; improvements: number; grounding_changes: number; created_at: string }) => (
+                    <div key={sc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/20 transition-colors">
+                      <button className="flex-1 text-left" onClick={() => loadSavedComparison(sc)}>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm font-medium">{sc.title}</span>
+                          <div className="flex gap-1.5 text-xs">
+                            {sc.regressions > 0 && <Badge variant="destructive" className="text-xs h-5">{sc.regressions}↓</Badge>}
+                            {sc.improvements > 0 && <Badge className="text-xs h-5 bg-green-100 text-green-700 border-green-200">{sc.improvements}↑</Badge>}
+                            {sc.grounding_changes > 0 && <Badge className="text-xs h-5 bg-amber-100 text-amber-700 border-amber-200">{sc.grounding_changes} Δ</Badge>}
+                          </div>
+                        </div>
+                        {sc.notes && <p className="text-xs text-muted-foreground mt-1 ml-6 line-clamp-1">{sc.notes}</p>}
+                        <p className="text-xs text-muted-foreground mt-0.5 ml-6">{formatRelativeTime(sc.created_at)}</p>
+                      </button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive" onClick={() => deleteComparison(sc.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
 
         {/* Run selectors */}
         <div className="grid grid-cols-2 gap-4">
