@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useKBDocuments, useKBChunks, useDeleteKBDocument, useIngestDocument } from '@/hooks/useKnowledgeBase';
 import { Button } from '@/components/ui/button';
