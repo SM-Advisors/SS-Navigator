@@ -215,7 +215,7 @@ export function useRunEval() {
 
         const batch = prompts.slice(i, i + CONCURRENCY);
 
-        const batchResults = await Promise.allSettled(
+        await Promise.allSettled(
           batch.map(async (prompt) => {
             if (controller.signal.aborted) return null;
 
