@@ -55,6 +55,8 @@ export interface EvalResult {
   retrieved_chunks: Array<{
     id: string; document_title: string; content: string; similarity: number;
   }>;
+  full_system_prompt: string | null;
+  user_messages: Array<{ role: string; content: string }> | null;
   error_message: string | null;
   latency_ms: number | null;
   response_length: number | null;
