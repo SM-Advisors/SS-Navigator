@@ -24,7 +24,6 @@ import NotFound from '@/pages/NotFound';
 
 // Admin pages
 import AdminKnowledgeBase from '@/pages/admin/AdminKnowledgeBase';
-import AdminRagTest from '@/pages/admin/AdminRagTest';
 import AdminEval from '@/pages/admin/AdminEval';
 import AdminEvalCompare from '@/pages/admin/AdminEvalCompare';
 
@@ -113,14 +112,7 @@ export default function App() {
                   </AdminRoute>
                 }
               />
-              <Route
-                path="/admin/rag-test"
-                element={
-                  <AdminRoute>
-                    <AdminRagTest />
-                  </AdminRoute>
-                }
-              />
+              
               <Route
                 path="/admin/eval"
                 element={

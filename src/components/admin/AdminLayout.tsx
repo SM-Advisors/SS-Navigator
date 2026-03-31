@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Link, useLocation } from 'react-router-dom';
-import { Database, FlaskConical, BarChart3, GitCompare, Shield } from 'lucide-react';
+import { Database, BarChart3, GitCompare, Shield } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -10,7 +10,6 @@ interface AdminLayoutProps {
 
 const adminNavItems = [
   { label: 'Knowledge Base', href: '/admin/knowledge-base', icon: Database },
-  { label: 'RAG Test Console', href: '/admin/rag-test', icon: FlaskConical },
   { label: 'Eval Harness', href: '/admin/eval', icon: BarChart3 },
   { label: 'Run Comparison', href: '/admin/eval/compare', icon: GitCompare },
 ];
