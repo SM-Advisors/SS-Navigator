@@ -5,6 +5,26 @@ import { AIConversation, AIMessage, SherpaResponse } from '@/types/ai-sherpa';
 import { detectCrisis } from '@/lib/crisis-keywords';
 import { toast } from 'sonner';
 
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      // Delete messages first, then conversation
+      await supabase.from('ai_messages').delete().eq('conversation_id', conversationId);
+      const { error } = await supabase.from('ai_conversations').delete().eq('id', conversationId);
+      if (error) throw error;
+      return conversationId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
+      toast.success('Conversation deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete conversation');
+    },
+  });
+}
+
 export function useConversationHistory() {
   const { user } = useAuth();
   return useQuery({

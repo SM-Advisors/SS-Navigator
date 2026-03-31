@@ -27,6 +27,12 @@ export default function AISherpa() {
   const { data: conversations } = useConversationHistory();
   const { data: messages, isLoading: loadingMessages } = useConversationMessages(conversationId);
   const { sendMessage } = useAISherpa(conversationId, setConversationId);
+  const deleteConversation = useDeleteConversation();
+
+  const handleDelete = (id: string) => {
+    if (conversationId === id) setConversationId(null);
+    deleteConversation.mutate(id);
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
