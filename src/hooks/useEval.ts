@@ -105,7 +105,6 @@ export function useStopEval() {
 
   return useMutation({
     mutationFn: async (runId: string) => {
-      // Update the run status to failed so the loop checks it
       await supabase.from('eval_runs').update({
         status: 'failed' as const,
         completed_at: new Date().toISOString(),
@@ -116,6 +115,29 @@ export function useStopEval() {
     },
     onSuccess: () => toast.info('Eval run stopped'),
     onError: (e) => toast.error('Failed to stop run', { description: (e as Error).message }),
+  });
+}
+
+// ── Delete an eval run ───────────────────────────────────────────────────────
+
+export function useDeleteEvalRun() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId: string) => {
+      // Delete results first (child rows)
+      const { error: resErr } = await supabase.from('eval_results').delete().eq('run_id', runId);
+      if (resErr) throw resErr;
+      // Delete the run
+      const { error: runErr } = await supabase.from('eval_runs').delete().eq('id', runId);
+      if (runErr) throw runErr;
+      return runId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['eval-runs'] });
+      toast.success('Eval run deleted');
+    },
+    onError: (e) => toast.error('Failed to delete run', { description: (e as Error).message }),
   });
 }
 

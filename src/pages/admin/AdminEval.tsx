@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { useEvalRuns, useEvalResults, useRunEval, useStopEval, EvalRun, EvalResult } from '@/hooks/useEval';
+import { useEvalRuns, useEvalResults, useRunEval, useStopEval, useDeleteEvalRun, EvalRun, EvalResult } from '@/hooks/useEval';
 import { ALL_SUITES } from '@/data/eval-prompts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw, Square } from 'lucide-react';
+import { BarChart3, Play, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Download, RefreshCw, Square, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatRelativeTime } from '@/lib/utils';
 
 
@@ -117,6 +118,7 @@ export default function AdminEval() {
   const { data: runs, isLoading: runsLoading } = useEvalRuns();
   const runEval = useRunEval();
   const stopEval = useStopEval();
+  const deleteRun = useDeleteEvalRun();
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const { data: results, isLoading: resultsLoading } = useEvalResults(selectedRunId);
   const [configOpen, setConfigOpen] = useState(false);
@@ -307,10 +309,39 @@ export default function AdminEval() {
                             <Square className="h-3.5 w-3.5" />Stop
                           </Button>
                         )}
-                        {selectedRun.status === 'completed' && (
+                        {selectedRun.status !== 'running' && (
                           <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1 text-xs">
                             <Download className="h-3.5 w-3.5" />CSV
                           </Button>
+                        )}
+                        {selectedRun.status !== 'running' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" className="gap-1 text-xs">
+                                <Trash2 className="h-3.5 w-3.5" />Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this eval run?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete the run and all its results. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    deleteRun.mutate(selectedRun.id, {
+                                      onSuccess: () => setSelectedRunId(null),
+                                    });
+                                  }}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>
