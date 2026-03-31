@@ -18,6 +18,7 @@ export function useResources(filters: ResourceFilters = {}, page = 1) {
             user_lng: filters.userLng,
             radius_miles: filters.radiusMiles,
             fallback_state: filters.state ?? null,
+            exclude_national: filters.excludeNational ?? false,
           }
         );
         if (rpcError) throw rpcError;

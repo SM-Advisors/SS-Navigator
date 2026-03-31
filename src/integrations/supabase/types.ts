@@ -1159,18 +1159,32 @@ export type Database = {
           text: string
         }[]
       }
-      resources_within_radius: {
-        Args: {
-          fallback_state?: string
-          radius_miles: number
-          user_lat: number
-          user_lng: number
-        }
-        Returns: {
-          distance_miles: number
-          resource_id: string
-        }[]
-      }
+      resources_within_radius:
+        | {
+            Args: {
+              fallback_state?: string
+              radius_miles: number
+              user_lat: number
+              user_lng: number
+            }
+            Returns: {
+              distance_miles: number
+              resource_id: string
+            }[]
+          }
+        | {
+            Args: {
+              exclude_national?: boolean
+              fallback_state?: string
+              radius_miles: number
+              user_lat: number
+              user_lng: number
+            }
+            Returns: {
+              distance_miles: number
+              resource_id: string
+            }[]
+          }
       validate_registration_code: {
         Args: { input_code: string }
         Returns: Json
