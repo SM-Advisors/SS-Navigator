@@ -110,6 +110,7 @@ export default function Profile() {
             Replay Tour
           </Button>
         </div>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Personal info */}
