@@ -69,29 +69,29 @@ export default function AISherpa() {
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-2 space-y-1">
             {conversations?.map(conv => (
-              <div key={conv.id} className="flex items-center gap-1">
+              <div key={conv.id} className="flex items-center gap-0.5" style={{ maxWidth: '100%' }}>
                 <button
                   onClick={() => {
                     setConversationId(conv.id);
                     if (isMobile) setShowSidebar(false);
                   }}
-                  className={`flex-1 min-w-0 text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex-1 overflow-hidden text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     conversationId === conv.id
                       ? 'bg-ss-navy text-white'
                       : 'hover:bg-muted text-foreground'
                   }`}
                 >
-                  <p className="font-medium text-xs overflow-hidden text-ellipsis whitespace-nowrap">{conv.title || 'New conversation'}</p>
+                  <p className="font-medium text-xs truncate">{conv.title || 'New conversation'}</p>
                   <p className={`text-xs mt-0.5 ${conversationId === conv.id ? 'text-white/60' : 'text-muted-foreground'}`}>
                     {formatRelativeTime(conv.updated_at ?? conv.created_at ?? new Date().toISOString())}
                   </p>
                 </button>
                 <button
                   onClick={() => handleDelete(conv.id)}
-                  className="shrink-0 p-1.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                  className="shrink-0 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
                   title="Delete conversation"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -104,7 +104,7 @@ export default function AISherpa() {
               </p>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Main chat area */}
