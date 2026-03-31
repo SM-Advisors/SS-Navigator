@@ -150,48 +150,49 @@ serve(async (req) => {
       });
     }
 
-    // 1. Fetch conversation history (last 10 messages for context)
-    let historyMessages: ChatMessage[] = [];
-    if (conversation_id) {
-      const { data: history } = await supabase
-        .from('ai_messages')
-        .select('role, content')
-        .eq('conversation_id', conversation_id)
-        .order('created_at', { ascending: true })
-        .limit(10);
+    // 1. Run retrieval + history in PARALLEL
+    const MAX_CHUNK_CHARS = 800;
 
-      if (history) {
-        historyMessages = history
-          .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
-          .map((m: { role: string; content: string }) => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
-          }));
-      }
-    }
+    const [historyResult, chunksResult] = await Promise.all([
+      conversation_id
+        ? supabase
+            .from('ai_messages')
+            .select('role, content')
+            .eq('conversation_id', conversation_id)
+            .order('created_at', { ascending: true })
+            .limit(6)
+        : Promise.resolve({ data: null }),
+      supabase.rpc('match_knowledge_base_fts', {
+        query_text: message,
+        match_count: retrieval_count,
+      }),
+    ]);
 
-    // 2. Retrieve relevant chunks using full-text search
-    let retrievedChunks: Array<{
+    const historyMessages: ChatMessage[] = (historyResult.data ?? [])
+      .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
+      .map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.role === 'assistant' ? m.content.slice(0, 300) : m.content.slice(0, 500),
+      }));
+
+    const retrievedChunks = (chunksResult.data ?? []) as Array<{
       id: string; document_id: string; document_title: string;
       chunk_index: number; content: string; program: string | null;
       resource_type: string | null; category: string | null;
       source_url: string | null; similarity: number;
-    }> = [];
+    }>;
 
-    const { data: chunks } = await supabase.rpc('match_knowledge_base_fts', {
-      query_text: message,
-      match_count: retrieval_count,
-    });
-    if (chunks) retrievedChunks = chunks;
-
-    // 3. Build context string
+    // 2. Build context string (trimmed chunks)
     const contextStr = retrievedChunks.length > 0
       ? `\n\n## RETRIEVED KNOWLEDGE BASE CONTEXT\nUse the following retrieved information to ground your response:\n\n${retrievedChunks
-          .map((c, i) => `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (Program: ${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${c.content}`)
+          .map((c, i) => {
+            const trimmed = c.content.length > MAX_CHUNK_CHARS ? c.content.slice(0, MAX_CHUNK_CHARS) + '…' : c.content;
+            return `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${trimmed}`;
+          })
           .join('\n\n---\n\n')}`
       : '\n\n## NOTE: No relevant documents found in knowledge base. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team at info@sebastianstrong.org or 833-726-2636.';
 
-    // 4. Build user context string
+    // 3. Build user context string
     const ctxParts: string[] = [];
     if (user_context?.treatment_stage) ctxParts.push(`Treatment stage: ${user_context.treatment_stage}`);
     if (user_context?.state) ctxParts.push(`State: ${user_context.state}`);

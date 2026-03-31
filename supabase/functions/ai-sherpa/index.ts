@@ -38,6 +38,9 @@ const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the S
 Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
 {"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false}`;
 
+// Maximum characters per retrieved chunk to keep prompt lean
+const MAX_CHUNK_CHARS = 800;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -68,50 +71,47 @@ serve(async (req) => {
       });
     }
 
-    // 1. Retrieve from knowledge base using improved FTS
-    let kbContext = '';
-    const { data: kbChunks } = await supabase.rpc('match_knowledge_base_fts', {
-      query_text: message,
-      match_count: 8,
-    });
+    // ── Run retrieval + history in parallel ──────────────────────────────
+    const [kbResult, historyResult] = await Promise.all([
+      supabase.rpc('match_knowledge_base_fts', {
+        query_text: message,
+        match_count: 5,
+      }),
+      conversation_id
+        ? supabase
+            .from('ai_messages')
+            .select('role, content')
+            .eq('conversation_id', conversation_id)
+            .order('created_at', { ascending: true })
+            .limit(6)
+        : Promise.resolve({ data: null }),
+    ]);
 
+    // ── Build KB context (trimmed chunks) ────────────────────────────────
+    const kbChunks = kbResult.data;
+    let kbContext = '';
     if (kbChunks?.length) {
       kbContext = `\n\n## RETRIEVED KNOWLEDGE BASE CONTEXT\n${kbChunks
-        .map((c: { document_title: string; program: string; category: string; content: string }, i: number) =>
-          `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (Program: ${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${c.content}`)
+        .map((c: { document_title: string; program: string; category: string; content: string }, i: number) => {
+          const trimmed = c.content.length > MAX_CHUNK_CHARS
+            ? c.content.slice(0, MAX_CHUNK_CHARS) + '…'
+            : c.content;
+          return `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${trimmed}`;
+        })
         .join('\n\n---\n\n')}`;
     } else {
       kbContext = '\n\n## NOTE: No relevant documents found. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team.';
     }
 
-    // 2. Also search resources table for direct matches to include as referenced resources
-    const { data: resources } = await supabase
-      .from('resources')
-      .select('id, title, organization_name, organization_url, category')
-      .eq('is_active', true)
-      .textSearch('search_vector', message, { type: 'websearch' })
-      .limit(5);
+    // ── Conversation history ─────────────────────────────────────────────
+    const conversationHistory = (historyResult.data ?? [])
+      .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
+      .map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.role === 'assistant' ? m.content.slice(0, 300) : m.content.slice(0, 500),
+      }));
 
-    if (resources?.length) {
-      kbContext += `\n\n## MATCHING RESOURCES (include relevant ones in referencedResources)\n${JSON.stringify(resources)}`;
-    }
-
-    // 3. Get conversation history
-    let conversationHistory: Array<{ role: string; content: string }> = [];
-    if (conversation_id) {
-      const { data: messages } = await supabase
-        .from('ai_messages')
-        .select('role, content')
-        .eq('conversation_id', conversation_id)
-        .order('created_at', { ascending: true })
-        .limit(10);
-
-      if (messages) {
-        conversationHistory = messages.filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant');
-      }
-    }
-
-    // 4. Build user context
+    // ── User context ─────────────────────────────────────────────────────
     const ctxParts: string[] = [];
     if (user_context?.treatment_stage) ctxParts.push(`Treatment stage: ${user_context.treatment_stage}`);
     if (user_context?.state) ctxParts.push(`State: ${user_context.state}`);
@@ -122,7 +122,7 @@ serve(async (req) => {
 
     const fullSystem = SYSTEM_PROMPT + userCtxStr + kbContext;
 
-    // 5. Call Claude
+    // ── Call Claude ──────────────────────────────────────────────────────
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -132,13 +132,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
+        max_tokens: 768,
         system: fullSystem,
         messages: [
-          ...conversationHistory.map((m: { role: string; content: string }) => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.role === 'assistant' ? m.content.slice(0, 500) : m.content,
-          })),
+          ...conversationHistory,
           { role: 'user', content: message },
         ],
       }),
@@ -153,7 +150,7 @@ serve(async (req) => {
     const claudeData = await claudeResponse.json();
     const rawContent = claudeData.content?.[0]?.text ?? '';
 
-    // 6. Parse JSON response
+    // ── Parse JSON response ──────────────────────────────────────────────
     let parsedResponse = {
       reply: 'I apologize, I had trouble processing your message. Please try again.',
       suggestedPrompts: [] as string[],
