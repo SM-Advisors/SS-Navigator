@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useKBDocuments, useKBChunks, useDeleteKBDocument, useIngestDocument } from '@/hooks/useKnowledgeBase';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag } from 'lucide-react';
+import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag, Download } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const RESOURCE_TYPES = ['financial', 'medical', 'emotional', 'practical', 'legal', 'educational', 'navigation', 'survivorship', 'sibling_support', 'community'];
 
