@@ -112,14 +112,7 @@ export default function App() {
                   </AdminRoute>
                 }
               />
-              <Route
-                path="/admin/rag-test"
-                element={
-                  <AdminRoute>
-                    <AdminRagTest />
-                  </AdminRoute>
-                }
-              />
+              
               <Route
                 path="/admin/eval"
                 element={

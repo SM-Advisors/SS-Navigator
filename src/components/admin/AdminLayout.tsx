@@ -10,7 +10,6 @@ interface AdminLayoutProps {
 
 const adminNavItems = [
   { label: 'Knowledge Base', href: '/admin/knowledge-base', icon: Database },
-  { label: 'RAG Test Console', href: '/admin/rag-test', icon: FlaskConical },
   { label: 'Eval Harness', href: '/admin/eval', icon: BarChart3 },
   { label: 'Run Comparison', href: '/admin/eval/compare', icon: GitCompare },
 ];
