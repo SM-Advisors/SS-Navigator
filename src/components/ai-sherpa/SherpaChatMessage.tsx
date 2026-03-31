@@ -1,11 +1,12 @@
 import ReactMarkdown from 'react-markdown';
-import { ExternalLink } from 'lucide-react';
-import { AIMessage } from '@/types/ai-sherpa';
+import { ExternalLink, Mail, Send } from 'lucide-react';
+import { AIMessage, DraftEmail } from '@/types/ai-sherpa';
 import { formatRelativeTime, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import SherpaCrisisDetection from './SherpaCrisisDetection';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface SherpaChatMessageProps {
   message: AIMessage;
