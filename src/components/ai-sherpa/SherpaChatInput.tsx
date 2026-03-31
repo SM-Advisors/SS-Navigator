@@ -36,8 +36,8 @@ export default function SherpaChatInput({ onSend, disabled }: SherpaChatInputPro
         onKeyDown={handleKeyDown}
         placeholder="Ask Hope anything... (Enter to send, Shift+Enter for new line)"
         disabled={disabled}
-        rows={1}
-        className="resize-none min-h-[44px] max-h-32 flex-1"
+        rows={2}
+        className="resize-none min-h-[56px] max-h-32 flex-1 text-sm leading-relaxed"
       />
       <Button
         onClick={handleSend}

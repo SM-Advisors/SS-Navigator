@@ -25,18 +25,18 @@ export default function SherpaChatMessage({ message, onSuggestedPrompt }: Sherpa
         </AvatarFallback>
       </Avatar>
 
-      <div className={`flex flex-col gap-2 max-w-[80%] ${isUser ? 'items-end' : 'items-start'}`}>
+        <div className={`flex flex-col gap-2 max-w-[85%] min-w-0 ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${
             isUser
               ? 'bg-ss-navy text-white rounded-tr-sm'
               : 'bg-card border shadow-sm rounded-tl-sm text-foreground'
           }`}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
           ) : (
-            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5">
+            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 break-words [&_p]:break-words [&_li]:break-words">
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           )}
