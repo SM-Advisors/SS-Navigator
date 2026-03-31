@@ -149,13 +149,11 @@ function ChunkViewer({ documentId }: { documentId: string }) {
         <Separator orientation="vertical" className="h-3" />
         <span>{totalChars.toLocaleString()} total chars</span>
       </div>
-      <ScrollArea className="max-h-[500px]">
-        <div className="space-y-2 pr-3">
-          {chunks.map((chunk) => (
-            <ChunkDetail key={chunk.id} chunk={chunk} />
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+        {chunks.map((chunk) => (
+          <ChunkDetail key={chunk.id} chunk={chunk} />
+        ))}
+      </div>
     </div>
   );
 }
