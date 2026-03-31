@@ -12,12 +12,124 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag, Download } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Trash2, Upload, FileText, RefreshCw, Database, ExternalLink, Search, Tag, Download, ChevronDown, ChevronRight, Copy, Globe, Clock } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const RESOURCE_TYPES = ['financial', 'medical', 'emotional', 'practical', 'legal', 'educational', 'navigation', 'survivorship', 'sibling_support', 'community'];
+
+function ChunkDetail({ chunk }: { chunk: ReturnType<typeof useKBChunks>['data'] extends (infer T)[] | undefined ? T : never }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!chunk) return null;
+
+  const wordCount = chunk.content.split(/\s+/).length;
+  const charCount = chunk.content.length;
+
+  return (
+    <div className="border rounded-lg bg-muted/30 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-start gap-2 p-3 text-left hover:bg-muted/50 transition-colors"
+      >
+        <span className="mt-0.5 shrink-0">
+          {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <Badge variant="outline" className="text-xs font-mono">#{chunk.chunk_index}</Badge>
+            {chunk.program && <Badge variant="secondary" className="text-xs">{chunk.program}</Badge>}
+            {chunk.category && <Badge className="text-xs bg-primary/10 text-primary border-primary/20">{chunk.category}</Badge>}
+            {chunk.resource_type && <Badge variant="outline" className="text-xs">{chunk.resource_type}</Badge>}
+            <span className="text-xs text-muted-foreground ml-auto">{wordCount} words · {charCount} chars</span>
+          </div>
+          <p className={`text-xs text-foreground leading-relaxed whitespace-pre-wrap ${expanded ? '' : 'line-clamp-2'}`}>
+            {chunk.content}
+          </p>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-3 space-y-2 border-t border-border/50 pt-2">
+          {/* Full content */}
+          <div className="relative">
+            <div className="bg-background rounded border p-3 text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto font-mono">
+              {chunk.content}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-1 right-1 h-7 w-7 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(chunk.content);
+                toast.success('Chunk content copied');
+              }}
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* Metadata grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div className="bg-background rounded border px-2 py-1.5">
+              <span className="text-muted-foreground block">Chunk ID</span>
+              <span className="font-mono text-foreground break-all">{chunk.id.slice(0, 12)}…</span>
+            </div>
+            <div className="bg-background rounded border px-2 py-1.5">
+              <span className="text-muted-foreground block">Document</span>
+              <span className="font-mono text-foreground truncate block">{chunk.document_id}</span>
+            </div>
+            {chunk.source_url && (
+              <div className="bg-background rounded border px-2 py-1.5">
+                <span className="text-muted-foreground block">Source</span>
+                <a href={chunk.source_url} target="_blank" rel="noopener noreferrer" className="text-primary flex items-center gap-1 hover:underline truncate">
+                  <Globe className="h-3 w-3 shrink-0" />{new URL(chunk.source_url).hostname}
+                </a>
+              </div>
+            )}
+            {chunk.created_at && (
+              <div className="bg-background rounded border px-2 py-1.5">
+                <span className="text-muted-foreground block">Created</span>
+                <span className="text-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{formatRelativeTime(chunk.created_at)}</span>
+              </div>
+            )}
+            {chunk.updated_at && (
+              <div className="bg-background rounded border px-2 py-1.5">
+                <span className="text-muted-foreground block">Updated</span>
+                <span className="text-foreground">{formatRelativeTime(chunk.updated_at)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Tags & States */}
+          {(chunk.tags?.length || chunk.applicable_states?.length) ? (
+            <div className="flex flex-wrap gap-1">
+              {chunk.tags?.map(tag => (
+                <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+              ))}
+              {chunk.applicable_states?.map(state => (
+                <Badge key={state} variant="secondary" className="text-xs">{state}</Badge>
+              ))}
+            </div>
+          ) : null}
+
+          {/* Raw metadata */}
+          {chunk.metadata && Object.keys(chunk.metadata).length > 0 && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Raw metadata</summary>
+              <pre className="bg-background border rounded p-2 mt-1 overflow-x-auto text-xs font-mono max-h-40 overflow-y-auto">
+                {JSON.stringify(chunk.metadata, null, 2)}
+              </pre>
+            </details>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ChunkViewer({ documentId }: { documentId: string }) {
   const { data: chunks, isLoading } = useKBChunks(documentId);
@@ -25,21 +137,26 @@ function ChunkViewer({ documentId }: { documentId: string }) {
   if (isLoading) return <p className="text-xs text-muted-foreground py-2">Loading chunks...</p>;
   if (!chunks?.length) return <p className="text-xs text-muted-foreground py-2">No chunks found.</p>;
 
+  const totalWords = chunks.reduce((acc, c) => acc + c.content.split(/\s+/).length, 0);
+  const totalChars = chunks.reduce((acc, c) => acc + c.content.length, 0);
+
   return (
-    <ScrollArea className="max-h-80">
-      <div className="space-y-2 pr-3">
-        {chunks.map((chunk) => (
-          <div key={chunk.id} className="border rounded-lg p-3 bg-muted/30">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Badge variant="outline" className="text-xs font-mono">#{chunk.chunk_index}</Badge>
-              {chunk.program && <Badge variant="secondary" className="text-xs">{chunk.program}</Badge>}
-              {chunk.category && <Badge className="text-xs bg-primary/10 text-primary border-primary/20">{chunk.category}</Badge>}
-            </div>
-            <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap line-clamp-6">{chunk.content}</p>
-          </div>
-        ))}
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground pb-1">
+        <span>{chunks.length} chunks</span>
+        <Separator orientation="vertical" className="h-3" />
+        <span>{totalWords.toLocaleString()} total words</span>
+        <Separator orientation="vertical" className="h-3" />
+        <span>{totalChars.toLocaleString()} total chars</span>
       </div>
-    </ScrollArea>
+      <ScrollArea className="max-h-[500px]">
+        <div className="space-y-2 pr-3">
+          {chunks.map((chunk) => (
+            <ChunkDetail key={chunk.id} chunk={chunk} />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }
 

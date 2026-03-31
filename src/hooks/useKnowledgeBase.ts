@@ -26,6 +26,11 @@ export interface KBChunk {
   resource_type: string | null;
   category: string | null;
   source_url: string | null;
+  applicable_states: string[] | null;
+  tags: string[] | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string | null;
+  updated_at: string | null;
   similarity?: number;
 }
 
@@ -74,7 +79,7 @@ export function useKBChunks(documentId: string | null) {
     queryFn: async (): Promise<KBChunk[]> => {
       const { data, error } = await supabase
         .from('knowledge_base')
-        .select('id, document_id, document_title, chunk_index, content, program, resource_type, category, source_url')
+        .select('id, document_id, document_title, chunk_index, content, program, resource_type, category, source_url, applicable_states, tags, metadata, created_at, updated_at')
         .eq('document_id', documentId!)
         .order('chunk_index', { ascending: true });
       if (error) throw error;
