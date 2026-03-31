@@ -464,6 +464,33 @@ export default function AdminEvalCompare() {
                   </div>
                 </div>
               </CardHeader>
+              {showSaveForm && (
+                <CardContent className="border-b pb-4">
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground mb-1 block">Title (optional)</label>
+                      <Input
+                        value={saveTitle}
+                        onChange={e => setSaveTitle(e.target.value)}
+                        placeholder={`${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground mb-1 block">Notes (optional)</label>
+                      <Input
+                        value={saveNotes}
+                        onChange={e => setSaveNotes(e.target.value)}
+                        placeholder="What changed and why..."
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button size="sm" onClick={saveComparison} disabled={saving} className="gap-1 text-xs h-8">
+                      <Save className="h-3.5 w-3.5" />{saving ? 'Saving...' : 'Save Comparison'}
+                    </Button>
+                  </div>
+                </CardContent>
+              )}
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
                   {[
