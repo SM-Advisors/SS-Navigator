@@ -137,7 +137,7 @@ export function useRunEval() {
 
       const {
         suite,
-        model = 'claude-sonnet-4-6-20260320',
+        model = 'claude-sonnet-4-6',
         prompt_version = 'v1',
         kb_version,
         retrieval_threshold = 0.5,
