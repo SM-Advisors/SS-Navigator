@@ -237,7 +237,7 @@ export default function Resources() {
           </Select>
 
           {/* Exclude national toggle */}
-          {filters.state && !filters.radiusMiles && (
+          {filters.state && (
             <div className="flex items-center gap-2">
               <Checkbox
                 id="exclude-national"
