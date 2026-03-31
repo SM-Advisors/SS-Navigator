@@ -172,11 +172,18 @@ serve(async (req) => {
     const rawContent = claudeData.content?.[0]?.text ?? '';
 
     // ── Parse JSON response ──────────────────────────────────────────────
-    let parsedResponse = {
+    let parsedResponse: {
+      reply: string;
+      suggestedPrompts: string[];
+      referencedResources: Array<{ id: string; title: string; organization_name: string; organization_url?: string }>;
+      crisisDetected: boolean;
+      noMatchFound: boolean;
+    } = {
       reply: 'I apologize, I had trouble processing your message. Please try again.',
-      suggestedPrompts: [] as string[],
-      referencedResources: [] as Array<{ id: string; title: string; organization_name: string; organization_url?: string }>,
+      suggestedPrompts: [],
+      referencedResources: [],
       crisisDetected: false,
+      noMatchFound: false,
     };
 
     try {
