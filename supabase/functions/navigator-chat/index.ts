@@ -245,7 +245,7 @@ serve(async (req) => {
         document_id: c.document_id,
         document_title: c.document_title,
         chunk_index: c.chunk_index,
-        content: c.content,
+        content: c.content.slice(0, MAX_CHUNK_CHARS),
         program: c.program,
         resource_type: c.resource_type,
         category: c.category,
