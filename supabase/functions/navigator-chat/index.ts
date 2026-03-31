@@ -236,11 +236,18 @@ serve(async (req) => {
 
     const latency_ms = Date.now() - startTime;
 
-    return new Response(JSON.stringify({
+    // Only include debug payload when explicitly requested (eval harness passes include_debug=true)
+    const includeDebug = body.include_debug === true;
+
+    const responsePayload: Record<string, unknown> = {
       ...parsed,
-      fullSystemPrompt: fullSystem,
-      userMessages: chatMessages,
-      retrievedChunks: retrievedChunks.map(c => ({
+      latency_ms,
+    };
+
+    if (includeDebug) {
+      responsePayload.fullSystemPrompt = fullSystem;
+      responsePayload.userMessages = chatMessages;
+      responsePayload.retrievedChunks = retrievedChunks.map(c => ({
         id: c.id,
         document_id: c.document_id,
         document_title: c.document_title,
@@ -251,9 +258,12 @@ serve(async (req) => {
         category: c.category,
         source_url: c.source_url,
         similarity: c.similarity,
-      })),
-      latency_ms,
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }));
+    }
+
+    return new Response(JSON.stringify(responsePayload), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error) {
     console.error('navigator-chat error:', error);
