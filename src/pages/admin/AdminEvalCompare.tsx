@@ -248,11 +248,12 @@ export default function AdminEvalCompare() {
     if (!baseId || !compId || !baseRun || !compRun) return;
     setSaving(true);
     try {
-      const title = `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
+      const title = saveTitle.trim() || `${baseRun.model.slice(0, 20)} vs ${compRun.model.slice(0, 20)}`;
       const { error } = await supabase.from('eval_comparisons').insert({
         base_run_id: baseId,
         comp_run_id: compId,
         title,
+        notes: saveNotes.trim() || null,
         regressions,
         improvements,
         grounding_changes: groundingChanges,
@@ -261,11 +262,26 @@ export default function AdminEvalCompare() {
       } as any);
       if (error) throw error;
       toast.success('Comparison saved');
+      setSaveTitle('');
+      setSaveNotes('');
+      setShowSaveForm(false);
       queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
     } catch (e) {
       toast.error('Failed to save', { description: (e as Error).message });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const deleteComparison = async (id: string) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('eval_comparisons').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Comparison deleted');
+      queryClient.invalidateQueries({ queryKey: ['eval-comparisons'] });
+    } catch (e) {
+      toast.error('Failed to delete', { description: (e as Error).message });
     }
   };
 
