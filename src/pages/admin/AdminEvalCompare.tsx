@@ -197,7 +197,10 @@ export default function AdminEvalCompare() {
   const [baseId, setBaseId] = useState<string | null>(null);
   const [compId, setCompId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [saveTitle, setSaveTitle] = useState('');
+  const [saveNotes, setSaveNotes] = useState('');
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [showSavedList, setShowSavedList] = useState(false);
   // Load saved comparisons
   const { data: savedComparisons } = useQuery({
     queryKey: ['eval-comparisons'],
