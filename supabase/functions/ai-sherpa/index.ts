@@ -41,7 +41,9 @@ const SYSTEM_PROMPT = `You are Hope, a compassionate patient navigator for the S
 
 ## RESPONSE FORMAT
 Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
-{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false}`;
+{"reply": "Your response in markdown", "suggestedPrompts": ["Q1?", "Q2?", "Q3?"], "referencedResources": [{"id": "resource-uuid", "title": "name", "organization_name": "org", "organization_url": "url"}], "crisisDetected": false, "noMatchFound": false}
+
+Set "noMatchFound" to true whenever you direct the user to the Navigator team because your retrieved context does not adequately answer their question.`;
 
 // Maximum characters per retrieved chunk to keep prompt lean
 const MAX_CHUNK_CHARS = 800;
