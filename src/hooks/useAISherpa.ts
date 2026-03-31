@@ -66,7 +66,24 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
         setConversationId(convId!);
       }
 
-      // Insert user message optimistically
+      // Optimistically add user message to cache
+      const optimisticMsg: AIMessage = {
+        id: `optimistic-${Date.now()}`,
+        conversation_id: convId!,
+        role: 'user',
+        content: message,
+        crisis_detected: crisisDetected,
+        created_at: new Date().toISOString(),
+        metadata: null,
+        resource_ids: null,
+        suggested_prompts: null,
+      };
+      queryClient.setQueryData<AIMessage[]>(['ai-messages', convId], (old) => [
+        ...(old ?? []),
+        optimisticMsg,
+      ]);
+
+      // Insert user message
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await supabase.from('ai_messages').insert({
         conversation_id: convId,
@@ -130,6 +147,12 @@ export function useAISherpa(conversationId: string | null, setConversationId: (i
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
     },
     onError: (error) => {
+      // Remove optimistic message on error
+      if (conversationId) {
+        queryClient.setQueryData<AIMessage[]>(['ai-messages', conversationId], (old) =>
+          (old ?? []).filter(m => !m.id.startsWith('optimistic-'))
+        );
+      }
       toast.error('Hope is temporarily unavailable', {
         description: error instanceof Error ? error.message : 'Please try again in a moment.',
       });
