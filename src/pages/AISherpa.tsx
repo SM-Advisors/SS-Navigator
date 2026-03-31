@@ -72,23 +72,31 @@ export default function AISherpa() {
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
             {conversations?.map(conv => (
-              <button
-                key={conv.id}
-                onClick={() => {
-                  setConversationId(conv.id);
-                  if (isMobile) setShowSidebar(false);
-                }}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  conversationId === conv.id
-                    ? 'bg-ss-navy text-white'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                <p className="font-medium truncate text-xs">{conv.title || 'New conversation'}</p>
-                <p className={`text-xs mt-0.5 ${conversationId === conv.id ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  {formatRelativeTime(conv.updated_at ?? conv.created_at ?? new Date().toISOString())}
-                </p>
-              </button>
+              <div key={conv.id} className="group relative">
+                <button
+                  onClick={() => {
+                    setConversationId(conv.id);
+                    if (isMobile) setShowSidebar(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 pr-8 rounded-lg text-sm transition-colors ${
+                    conversationId === conv.id
+                      ? 'bg-ss-navy text-white'
+                      : 'hover:bg-muted text-foreground'
+                  }`}
+                >
+                  <p className="font-medium truncate text-xs">{conv.title || 'New conversation'}</p>
+                  <p className={`text-xs mt-0.5 ${conversationId === conv.id ? 'text-white/60' : 'text-muted-foreground'}`}>
+                    {formatRelativeTime(conv.updated_at ?? conv.created_at ?? new Date().toISOString())}
+                  </p>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(conv.id); }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                  title="Delete conversation"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
             {!conversations?.length && (
               <p className="text-xs text-muted-foreground text-center py-4 px-2">
