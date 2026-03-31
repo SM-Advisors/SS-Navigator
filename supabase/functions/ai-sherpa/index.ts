@@ -220,7 +220,11 @@ serve(async (req) => {
       }
     }
 
-    const responsePayload = { ...parsedResponse, ...(draftEmail ? { draftEmail } : {}) };
+    // Include draft email if AI signaled no match or KB returned nothing
+    const shouldDraftEmail = !kbChunks?.length || parsedResponse.noMatchFound;
+    const draftEmail = shouldDraftEmail ? buildDraftEmail() : undefined;
+    const { noMatchFound: _omit, ...cleanResponse } = parsedResponse;
+    const responsePayload = { ...cleanResponse, ...(draftEmail ? { draftEmail } : {}) };
     return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
