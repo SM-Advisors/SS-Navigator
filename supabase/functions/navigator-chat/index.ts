@@ -237,6 +237,8 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       ...parsed,
+      fullSystemPrompt: fullSystem,
+      userMessages: chatMessages,
       retrievedChunks: retrievedChunks.map(c => ({
         id: c.id,
         document_id: c.document_id,
