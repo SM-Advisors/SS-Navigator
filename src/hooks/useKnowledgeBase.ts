@@ -26,6 +26,11 @@ export interface KBChunk {
   resource_type: string | null;
   category: string | null;
   source_url: string | null;
+  applicable_states: string[] | null;
+  tags: string[] | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string | null;
+  updated_at: string | null;
   similarity?: number;
 }
 
