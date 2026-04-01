@@ -160,7 +160,7 @@ export default function Resources() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div ref={contentRef} className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-ss-navy flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
