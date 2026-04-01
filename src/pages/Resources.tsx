@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, MapPin, Radar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -79,8 +79,9 @@ export default function Resources() {
   const [radiusValue, setRadiusValue] = useState<string>('none');
   const [geocoding, setGeocoding] = useState(false);
 
-  const { data, isLoading } = useResources(filters, page);
+  const { data, isLoading, isFetching } = useResources(filters, page);
   const totalPages = Math.ceil((data?.total ?? 0) / RESOURCES_PER_PAGE);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const updateFilter = (key: keyof ResourceFilters, value: string | number | boolean | null | undefined) => {
     setFilters(prev => ({ ...prev, [key]: value ?? undefined }));
@@ -159,7 +160,7 @@ export default function Resources() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div ref={contentRef} className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-ss-navy flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
@@ -302,10 +303,10 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page <= 1}
+                disabled={page <= 1 || isFetching}
                 onClick={() => {
                   setPage(p => Math.max(1, p - 1));
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -316,10 +317,10 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page >= totalPages}
+                disabled={page >= totalPages || isFetching}
                 onClick={() => {
-                  setPage(p => Math.min(totalPages, p + 1));
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  setPage(p => p + 1);
+                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 <ChevronRight className="h-4 w-4" />
