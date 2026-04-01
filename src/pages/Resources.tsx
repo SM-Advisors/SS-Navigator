@@ -79,8 +79,9 @@ export default function Resources() {
   const [radiusValue, setRadiusValue] = useState<string>('none');
   const [geocoding, setGeocoding] = useState(false);
 
-  const { data, isLoading } = useResources(filters, page);
+  const { data, isLoading, isFetching } = useResources(filters, page);
   const totalPages = Math.ceil((data?.total ?? 0) / RESOURCES_PER_PAGE);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const updateFilter = (key: keyof ResourceFilters, value: string | number | boolean | null | undefined) => {
     setFilters(prev => ({ ...prev, [key]: value ?? undefined }));
