@@ -17,11 +17,14 @@ export default function ResourceSearch({
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
+    if (localValue === value) return;
+
     const timer = setTimeout(() => {
       onChange(localValue);
     }, 350);
+
     return () => clearTimeout(timer);
-  }, [localValue, onChange]);
+  }, [localValue, onChange, value]);
 
   useEffect(() => {
     setLocalValue(value);
