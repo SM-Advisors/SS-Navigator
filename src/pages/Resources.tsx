@@ -303,10 +303,10 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page <= 1}
+                disabled={page <= 1 || isFetching}
                 onClick={() => {
                   setPage(p => Math.max(1, p - 1));
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -317,10 +317,10 @@ export default function Resources() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page >= totalPages}
+                disabled={page >= totalPages || isFetching}
                 onClick={() => {
-                  setPage(p => Math.min(totalPages, p + 1));
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  setPage(p => p + 1);
+                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 <ChevronRight className="h-4 w-4" />
