@@ -149,7 +149,11 @@ serve(async (req) => {
     if (user_context?.additional_info) ctxParts.push(`Family context: ${user_context.additional_info}`);
     const userCtxStr = ctxParts.length ? `\n\n## USER CONTEXT\n${ctxParts.join('\n')}` : '';
 
-    const fullSystem = SYSTEM_PROMPT + userCtxStr + kbContext;
+    // ── Classify category and build full system prompt ─────────────────
+    const category = classifyCategory(message);
+    const categoryStr = `\n\n## CATEGORY CONTEXT\nThe question you are answering falls under this category: ${category}. Use this to calibrate your depth — Treatment Access & Authorization and Insurance Denial & Appeals questions warrant the most detailed, rights-forward responses. Psychosocial & Supportive Care questions should prioritize warmth and peer connection over information density.`;
+
+    const fullSystem = BASE_SYSTEM_PROMPT + categoryStr + userCtxStr + kbContext;
 
     // ── Draft email helper (built after AI response if needed) ──────────
     const buildDraftEmail = () => {
