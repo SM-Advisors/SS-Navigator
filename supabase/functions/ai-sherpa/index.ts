@@ -95,7 +95,7 @@ serve(async (req) => {
         })
         .join('\n\n---\n\n')}`;
     } else {
-      kbContext = '\n\n## IMPORTANT — NO RELEVANT DOCUMENTS FOUND\nYou MUST NOT attempt to answer with general knowledge. You MUST direct the user to contact the Sebastian Strong Navigator team:\n- Phone: 833-726-2636\n- Email: info@sebastianstrong.org\n- Website: https://www.sebastianstrong.org\nBe warm and empathetic, but do NOT fabricate any resource names, programs, or details.';
+      kbContext = '\n\n## IMPORTANT — NO RELEVANT DOCUMENTS FOUND\nYou MUST NOT attempt to answer with general knowledge. You MUST direct the user to contact the Sebastian Strong Navigator team:\n- Phone: 305-335-0894\n- Email: oscar@sebastianstrong.org\n- Website: https://www.sebastianstrong.org\nBe warm and empathetic, but do NOT fabricate any resource names, programs, or details.';
     }
 
     // ── Conversation history ─────────────────────────────────────────────
