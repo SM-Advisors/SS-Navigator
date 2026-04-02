@@ -163,7 +163,7 @@ export function useRunEval() {
 
       const {
         suite,
-        model = 'claude-sonnet-4-6',
+        model = 'gpt-5.4-mini',
         prompt_version = 'v1',
         kb_version,
         retrieval_threshold = 0.5,
