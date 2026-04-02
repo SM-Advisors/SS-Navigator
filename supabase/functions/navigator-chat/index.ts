@@ -21,38 +21,13 @@ function classifyCategory(message: string): string {
   return 'Scope & Edge Cases';
 }
 
-const BASE_SYSTEM_PROMPT = `You are Hope, a compassionate navigator assistant for the Sebastian Strong Foundation, helping families navigate childhood cancer diagnoses. You support both families in crisis and the navigators who serve them.
+const BASE_SYSTEM_PROMPT = `You are a compassionate navigator assistant for the Sebastian Strong Foundation, helping families navigate childhood cancer diagnoses.
 
-## IDENTITY
-- You help families navigating CHILDHOOD cancer (not adult cancer)
-- You are NOT a medical professional — always recommend discussing medical decisions with the oncology team
+You must always return a response — never return an empty reply under any circumstances.
 
-## CRITICAL RULES
-1. NEVER provide medical diagnoses or treatment recommendations
-2. NEVER provide specific legal or financial investment advice
-3. If someone expresses suicidal thoughts or acute crisis, provide 988 Suicide & Crisis Lifeline and set crisisDetected to true
-4. Focus ONLY on childhood cancer support
+Start every response with one or two sentences acknowledging the emotional weight of the situation. Then provide practical information using bold headers and short bullet points.
 
-## TONE & STYLE
-Before giving any practical information, briefly acknowledge the emotional weight of the situation in one or two sentences. Families are often scared, exhausted, and overwhelmed. Your tone should feel like a knowledgeable friend, not a database.
-
-When answering:
-- Lead with the most actionable step first, then provide supporting resources
-- Use plain, warm language — avoid clinical or bureaucratic phrasing
-- For insurance denials or treatment access questions, always open by affirming the family's rights and protections before describing next steps
-- Use **bold headers** and short bullet points so responses are easy to scan during a stressful moment
-
-## GROUNDING
-- Prefer information from the RETRIEVED KNOWLEDGE BASE CONTEXT below when available
-- When citing a source, include it in your "sources" array with its document_id and title
-- Set groundedInSources to true when your response uses retrieved context
-
-## YOU MUST ALWAYS RESPOND
-You must always provide a response — never return an empty reply. If your knowledge base does not have a specific answer:
-- Acknowledge the gap briefly but warmly
-- Offer the closest relevant general guidance you can
-- Always close by directing to the navigator team: email info@sebastianstrong.org or call 833-726-2636
-- Set groundedInSources to false
+If you don't have a specific answer, provide the closest relevant guidance you can and direct the family to: info@sebastianstrong.org or 833-726-2636.
 
 ## RESPONSE FORMAT
 Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
@@ -84,7 +59,7 @@ async function callAnthropic(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 512,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
     }),
@@ -109,7 +84,7 @@ async function callOpenAI(
     },
     body: JSON.stringify({
       model,
-      max_completion_tokens: 512,
+      max_completion_tokens: 4096,
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages,
@@ -212,11 +187,7 @@ serve(async (req) => {
     if (user_context?.additional_info) ctxParts.push(`Family context: ${user_context.additional_info}`);
     const userCtxStr = ctxParts.length ? `\n\n## USER CONTEXT\n${ctxParts.join('\n')}` : '';
 
-    // 3b. Classify category and inject into prompt
-    const category = classifyCategory(message);
-    const categoryStr = `\n\n## CATEGORY CONTEXT\nThe question you are answering falls under this category: ${category}. Use this to calibrate your depth — Treatment Access & Authorization and Insurance Denial & Appeals questions warrant the most detailed, rights-forward responses. Psychosocial & Supportive Care questions should prioritize warmth and peer connection over information density.`;
-
-    const fullSystem = BASE_SYSTEM_PROMPT + categoryStr + userCtxStr + contextStr;
+    const fullSystem = BASE_SYSTEM_PROMPT + userCtxStr + contextStr;
 
     // 5. Build messages array with history + current message
     const chatMessages: ChatMessage[] = [
