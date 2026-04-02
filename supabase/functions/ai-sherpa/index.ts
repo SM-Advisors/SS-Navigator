@@ -27,7 +27,7 @@ You must always return a response — never return an empty reply under any circ
 
 Start every response with one or two sentences acknowledging the emotional weight of the situation. Then provide practical information using bold headers and short bullet points.
 
-If you don't have a specific answer, provide the closest relevant guidance you can and direct the family to: info@sebastianstrong.org or 833-726-2636.
+If you don't have a specific answer, provide the closest relevant guidance you can and direct the family to: oscar@sebastianstrong.org or 305-335-0894.
 
 ## RESPONSE FORMAT
 Respond with ONLY valid JSON (no markdown code blocks). Use this structure:
@@ -95,7 +95,7 @@ serve(async (req) => {
         })
         .join('\n\n---\n\n')}`;
     } else {
-      kbContext = '\n\n## IMPORTANT — NO RELEVANT DOCUMENTS FOUND\nYou MUST NOT attempt to answer with general knowledge. You MUST direct the user to contact the Sebastian Strong Navigator team:\n- Phone: 833-726-2636\n- Email: info@sebastianstrong.org\n- Website: https://www.sebastianstrong.org\nBe warm and empathetic, but do NOT fabricate any resource names, programs, or details.';
+      kbContext = '\n\n## IMPORTANT — NO RELEVANT DOCUMENTS FOUND\nYou MUST NOT attempt to answer with general knowledge. You MUST direct the user to contact the Sebastian Strong Navigator team:\n- Phone: 305-335-0894\n- Email: oscar@sebastianstrong.org\n- Website: https://www.sebastianstrong.org\nBe warm and empathetic, but do NOT fabricate any resource names, programs, or details.';
     }
 
     // ── Conversation history ─────────────────────────────────────────────
@@ -125,7 +125,7 @@ serve(async (req) => {
       const diagnosisInfo = user_context?.diagnosis ? ` (diagnosis: ${user_context.diagnosis})` : '';
       const stateInfo = user_context?.state ? ` in ${user_context.state}` : '';
       return {
-        to: 'info@sebastianstrong.org',
+        to: 'oscar@sebastianstrong.org',
         subject: `Navigator Support Request: ${message.slice(0, 80)}`,
         body: `Dear Navigator Team,\n\nI am ${userName}${stateInfo} navigating childhood cancer${diagnosisInfo}. I was unable to find resources through Hope regarding the following:\n\n"${message}"\n\nCould you please help me find relevant support or resources for this?\n\nThank you for your help.\n\nWarm regards`,
       };
