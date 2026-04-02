@@ -176,7 +176,7 @@ serve(async (req) => {
             return `[${i + 1}] Source: "${c.document_title}"${c.program ? ` (${c.program})` : ''}${c.category ? ` [${c.category}]` : ''}\n${trimmed}`;
           })
           .join('\n\n---\n\n')}`
-      : '\n\n## NOTE: No relevant documents found in knowledge base. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team at info@sebastianstrong.org or 833-726-2636.';
+      : '\n\n## NOTE: No relevant documents found in knowledge base. You MUST tell the user you don\'t have specific resources and recommend contacting the Navigator team at oscar@sebastianstrong.org or 305-335-0894.';
 
     // 3. Build user context string
     const ctxParts: string[] = [];

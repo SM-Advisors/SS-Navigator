@@ -125,7 +125,7 @@ serve(async (req) => {
       const diagnosisInfo = user_context?.diagnosis ? ` (diagnosis: ${user_context.diagnosis})` : '';
       const stateInfo = user_context?.state ? ` in ${user_context.state}` : '';
       return {
-        to: 'info@sebastianstrong.org',
+        to: 'oscar@sebastianstrong.org',
         subject: `Navigator Support Request: ${message.slice(0, 80)}`,
         body: `Dear Navigator Team,\n\nI am ${userName}${stateInfo} navigating childhood cancer${diagnosisInfo}. I was unable to find resources through Hope regarding the following:\n\n"${message}"\n\nCould you please help me find relevant support or resources for this?\n\nThank you for your help.\n\nWarm regards`,
       };
