@@ -140,7 +140,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'gpt-5.4-mini',
         max_tokens: 4096,
         system: fullSystem,
         messages: [

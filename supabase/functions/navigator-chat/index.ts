@@ -127,7 +127,7 @@ serve(async (req) => {
       conversation_id,
       user_context,
       retrieval_count = 5,
-      model = 'claude-sonnet-4-6',
+      model = 'gpt-5.4-mini',
     } = body;
 
     if (!message) {
