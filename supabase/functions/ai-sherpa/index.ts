@@ -135,33 +135,63 @@ serve(async (req) => {
       };
     };
 
-    // ── Call Claude ──────────────────────────────────────────────────────
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5.4-mini',
-        max_tokens: 4096,
-        system: fullSystem,
-        messages: [
-          ...conversationHistory,
-          { role: 'user', content: message },
-        ],
-      }),
-    });
+    // ── Call AI model (OpenAI or Anthropic) ─────────────────────────────
+    let rawContent = '';
 
-    if (!claudeResponse.ok) {
-      const errorText = await claudeResponse.text();
-      console.error('Claude API error:', errorText);
-      throw new Error('AI service temporarily unavailable');
+    if (isOpenAI) {
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 4096,
+          messages: [
+            { role: 'system', content: fullSystem },
+            ...conversationHistory,
+            { role: 'user', content: message },
+          ],
+        }),
+      });
+
+      if (!openaiResponse.ok) {
+        const errorText = await openaiResponse.text();
+        console.error('OpenAI API error:', errorText);
+        throw new Error('AI service temporarily unavailable');
+      }
+
+      const openaiData = await openaiResponse.json();
+      rawContent = openaiData.choices?.[0]?.message?.content ?? '';
+    } else {
+      const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 4096,
+          system: fullSystem,
+          messages: [
+            ...conversationHistory,
+            { role: 'user', content: message },
+          ],
+        }),
+      });
+
+      if (!claudeResponse.ok) {
+        const errorText = await claudeResponse.text();
+        console.error('Claude API error:', errorText);
+        throw new Error('AI service temporarily unavailable');
+      }
+
+      const claudeData = await claudeResponse.json();
+      rawContent = claudeData.content?.[0]?.text ?? '';
     }
-
-    const claudeData = await claudeResponse.json();
-    const rawContent = claudeData.content?.[0]?.text ?? '';
 
     // ── Parse JSON response ──────────────────────────────────────────────
     let parsedResponse: {
