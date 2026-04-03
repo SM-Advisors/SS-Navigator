@@ -306,7 +306,7 @@ export default function Resources() {
                 disabled={page <= 1 || isFetching}
                 onClick={() => {
                   setPage(p => Math.max(1, p - 1));
-                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  contentRef.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -320,7 +320,7 @@ export default function Resources() {
                 disabled={page >= totalPages || isFetching}
                 onClick={() => {
                   setPage(p => p + 1);
-                  contentRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  contentRef.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
                 <ChevronRight className="h-4 w-4" />
