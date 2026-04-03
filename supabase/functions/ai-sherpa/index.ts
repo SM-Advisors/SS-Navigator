@@ -52,6 +52,10 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
+    const openaiKey = Deno.env.get('OPENAI_API_KEY')!;
+
+    const MODEL = 'gpt-5.4-mini';
+    const isOpenAI = MODEL.startsWith('gpt-') || MODEL.startsWith('o1') || MODEL.startsWith('o3');
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
