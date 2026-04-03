@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, MapPin, Radar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -82,6 +82,15 @@ export default function Resources() {
   const { data, isLoading, isFetching } = useResources(filters, page);
   const totalPages = Math.ceil((data?.total ?? 0) / RESOURCES_PER_PAGE);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      contentRef.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [page]);
 
   const updateFilter = (key: keyof ResourceFilters, value: string | number | boolean | null | undefined) => {
     setFilters(prev => ({ ...prev, [key]: value ?? undefined }));
@@ -304,10 +313,7 @@ export default function Resources() {
                 variant="outline"
                 size="sm"
                 disabled={page <= 1 || isFetching}
-                onClick={() => {
-                  setPage(p => Math.max(1, p - 1));
-                  contentRef.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -318,10 +324,7 @@ export default function Resources() {
                 variant="outline"
                 size="sm"
                 disabled={page >= totalPages || isFetching}
-                onClick={() => {
-                  setPage(p => p + 1);
-                  contentRef.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => setPage(p => p + 1)}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
